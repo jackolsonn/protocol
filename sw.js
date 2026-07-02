@@ -1,4 +1,4 @@
-const CACHE = "protocol-v3";
+const CACHE = "protocol-v4";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
@@ -13,6 +13,11 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
+  // Only manage our own files. Cross-origin requests (Firebase SDK/API when
+  // live sync is on) pass straight through — caching or offline-fallbacking
+  // them would break sync and serve HTML in place of JS/JSON.
+  if (new URL(e.request.url).origin !== location.origin) return;
+
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(hit =>
       hit || fetch(e.request).then(res => {

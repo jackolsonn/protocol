@@ -153,6 +153,8 @@ label{font-size:12px;color:var(--dim);font-weight:600;display:block;margin:10px 
 <nav id="nav"></nav>
 <div id="modal"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
 <script>
 /* ================= DATA ================= */
 const DAYS=["sun","mon","tue","wed","thu","fri","sat"];
@@ -351,7 +353,7 @@ function load(){
  const T=DEFAULTS.targets;for(const k in T)if(DB.targets[k]==null)DB.targets[k]=T[k];
  save();
 }
-function save(){localStorage.setItem("protocol_v2",JSON.stringify(DB))}
+function save(){localStorage.setItem("protocol_v2",JSON.stringify(DB));schedulePush()}
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 const todayDay=()=>DAYS[new Date().getDay()];
 const nowMin=()=>new Date().getHours()*60+new Date().getMinutes();
@@ -361,6 +363,62 @@ function toMin(t){
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function fmtDate(k){const[y,m,d]=k.split("-");return new Date(+y,+m-1,+d).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}
+
+/* ---------- Firebase live sync (optional, off by default) ---------- */
+let fbRef=null, fbApplyingRemote=false, pushTimer=null, syncStatus="off";
+function loadSyncConfig(){
+ try{return JSON.parse(localStorage.getItem("protocol_sync")||"null")}catch(e){return null}
+}
+function initSync(){
+ const cfg=loadSyncConfig();
+ if(!cfg||!cfg.apiKey||!cfg.databaseURL){syncStatus="off";return}
+ if(typeof firebase==="undefined"){syncStatus="Firebase SDK unavailable (offline?)";if(TAB==="more")render();return}
+ try{
+  const app=firebase.apps&&firebase.apps.length?firebase.apps[0]:firebase.initializeApp(cfg);
+  fbRef=firebase.database(app).ref("protocol_sync/"+(cfg.room||"default"));
+  fbRef.on("value",snap=>{
+   const remote=snap.val();
+   if(!remote||!remote._updatedAt)return;
+   if(!DB._updatedAt||remote._updatedAt>DB._updatedAt){
+    fbApplyingRemote=true;
+    DB=remote;
+    localStorage.setItem("protocol_v2",JSON.stringify(DB));
+    fbApplyingRemote=false;
+    render();
+    toast("Synced from other device");
+   }
+  },err=>{syncStatus="Error: "+err.message;if(TAB==="more")render()});
+  syncStatus="connected";
+ }catch(e){syncStatus="Error: "+e.message}
+ if(TAB==="more")render();
+}
+function schedulePush(){
+ if(!fbRef||fbApplyingRemote)return;
+ clearTimeout(pushTimer);
+ pushTimer=setTimeout(pushSync,600);
+}
+function pushSync(){
+ if(!fbRef)return;
+ DB._updatedAt=Date.now();
+ fbRef.set(DB).catch(e=>{syncStatus="Error: "+e.message;if(TAB==="more")render()});
+}
+function saveSyncConfig(){
+ let cfg;
+ try{cfg=JSON.parse($("synccfg").value)}catch(e){toast("That's not valid JSON — paste the full config object",true);return}
+ if(!cfg.apiKey||!cfg.databaseURL){toast("Config needs at least apiKey and databaseURL",true);return}
+ cfg.room=$("syncroom").value.trim()||"default";
+ localStorage.setItem("protocol_sync",JSON.stringify(cfg));
+ if(fbRef){fbRef.off();fbRef=null}
+ initSync();
+ toast("Sync connecting…");
+ render();
+}
+function disconnectSync(){
+ if(fbRef){fbRef.off();fbRef=null}
+ localStorage.removeItem("protocol_sync");
+ syncStatus="off";
+ toast("Sync disconnected");render();
+}
 
 /* ================= UI ================= */
 let TAB="today", PLANDAY=todayDay(), GYM=null, BOOKVIEW="history", BOOKEX=null;
@@ -803,8 +861,25 @@ function delItem(id){DB.schedule[PLANDAY]=DB.schedule[PLANDAY].filter(i=>i.id!==
 function vMore(){
  const T=DB.targets;
  const notifState=("Notification" in window)?Notification.permission:"unsupported";
+ const cfg=loadSyncConfig();
  return `
   <h1>Settings & Reminders</h1>
+  <h2>Live sync between devices</h2>
+  <div class="card">
+    <div style="font-size:13px;line-height:1.55;color:var(--dim)">
+      <b style="color:var(--text)">Optional.</b> Connects this device and your phone through a free Firebase project so edits on one show up on the other within a second or two. Photos in Motivation stay local-only and are never synced. Your data leaves this device and is stored on Google's servers once enabled.
+    </div>
+    <div style="margin-top:10px;font-size:12px;font-weight:700;color:${syncStatus==='connected'?'var(--green)':syncStatus==='off'?'var(--dim)':'var(--red)'}">Status: ${esc(syncStatus)}</div>
+    ${cfg?`
+    <button class="btn danger" style="width:100%;margin-top:10px" onclick="disconnectSync()">Disconnect sync</button>
+    `:`
+    <label>Firebase config (paste the whole object from your Firebase project settings)</label>
+    <textarea id="synccfg" rows="5" placeholder='{"apiKey":"...","databaseURL":"https://your-project-default-rtdb.firebaseio.com","projectId":"..."}'></textarea>
+    <label>Sync code (use the exact same code on both devices)</label>
+    <input id="syncroom" placeholder="e.g. jack-protocol">
+    <button class="btn primary" style="width:100%;margin-top:10px" onclick="saveSyncConfig()">Connect this device</button>
+    `}
+  </div>
   <h2>Weekly plan</h2>
   <div class="card">
     <div style="font-size:13px;color:var(--dim);line-height:1.5">Edit your recurring daily schedule — times, activities, and which items send reminders.</div>
@@ -1151,6 +1226,7 @@ function vMotiv(){
 /* ---------- boot ---------- */
 load();render();
 loadMotivImages();
+initSync();
 setInterval(()=>{if(TAB==="today")render()},60000);
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{})}
 </script>
