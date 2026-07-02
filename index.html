@@ -117,6 +117,27 @@ label{font-size:12px;color:var(--dim);font-weight:600;display:block;margin:10px 
 .seg button{flex:1;background:none;color:var(--dim);padding:9px;font-size:13px;border-radius:10px}
 .seg button.on{background:var(--card);color:var(--text)}
 .caff-cut{font-size:12px;font-weight:700;margin-top:8px}
+/* history calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cal .wd{font-size:10px;color:var(--dim);text-align:center;font-weight:700;text-transform:uppercase;padding-bottom:2px}
+.cal .day{aspect-ratio:1;border-radius:9px;background:var(--card2);display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--dim);border:1.5px solid transparent}
+.cal .day.g4{background:rgba(52,211,153,.25);color:var(--green);border-color:rgba(52,211,153,.6)}
+.cal .day.g2{background:rgba(251,191,36,.16);color:var(--amber)}
+.cal .day.g0{background:rgba(248,113,113,.14);color:var(--red)}
+.cal .day.today{border-color:var(--accent)}
+.cal .day.future,.cal .day.blank{opacity:.22;background:transparent}
+.legend{display:flex;gap:12px;justify-content:center;margin-top:10px;font-size:11px;color:var(--dim)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.mnav{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mnav button{background:var(--card2);border:1px solid var(--line);color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px}
+.mnav .mtitle{flex:1;text-align:center;font-weight:800;font-size:16px}
+.arow{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--line);font-size:13px}
+.arow:last-child{border-bottom:none}
+.objline{display:flex;align-items:center;gap:8px;padding:7px 0;font-size:14px}
+.objline .mark{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.objline .mark.ok{background:rgba(52,211,153,.2);color:var(--green)}
+.objline .mark.no{background:rgba(248,113,113,.15);color:var(--red)}
 /* motivation */
 .hero-img{width:100%;border-radius:18px;display:block;object-fit:cover;max-height:60vh;background:var(--card2)}
 .upload-btn{position:relative;overflow:hidden;display:inline-block}
@@ -354,16 +375,17 @@ const ICONS={
  plan:'<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M8 2.5v4M16 2.5v4M3 9.5h18"/><circle cx="8" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="12" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="14" r="1" fill="currentColor" stroke="none"/></svg>',
  more:'<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8.2v.1M12 11v5"/></svg>',
  motiv:'<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="15" rx="2.5"/><circle cx="8.3" cy="9.5" r="1.6"/><path d="M3 15.5l5-4.5 4 3.5 3.5-3 5.5 5"/></svg>',
+ hist:'<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21v-7M11 21V8M16 21v-4M21 21V4"/></svg>',
 };
 const BELL='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.3 5.5 2 6.5H4c.7-1 2-2.5 2-6.5Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>';
-const TABS=[["today","Today"],["food","Food"],["train","Train"],["book","Notebook"],["motiv","Motivation"],["plan","Plan"],["more","More"]];
+const TABS=[["today","Today"],["food","Food"],["train","Train"],["book","Notebook"],["hist","History"],["motiv","Motivation"],["more","More"]];
 function renderNav(){
  $("nav").innerHTML=TABS.map(([k,l])=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')"><span class="ico">${ICONS[k]}</span>${l}</button>`).join("");
 }
 function go(t){TAB=t;render();window.scrollTo(0,0)}
 function render(){
  renderNav();
- const v={today:vToday,food:vFood,train:vTrain,book:vBook,motiv:vMotiv,plan:vPlan,more:vMore,gym:vGym}[TAB];
+ const v={today:vToday,food:vFood,train:vTrain,book:vBook,hist:vHist,motiv:vMotiv,plan:vPlan,more:vMore,gym:vGym}[TAB];
  $("app").innerHTML=v();
 }
 
@@ -732,6 +754,7 @@ function vPlan(){
  const items=[...DB.schedule[PLANDAY]].sort((a,b)=>toMin(a.time)-toMin(b.time));
  return `
   <div class="row"><h1 class="grow">Weekly Plan</h1>
+   <button class="btn" onclick="go('more')">Done</button>
    <button class="btn primary" onclick="editItem(null)">+ Add</button></div>
   <div class="sub" style="margin-bottom:10px">Tap an item to edit · ${BELL} = included in reminders export</div>
   <div class="days">${DAYS.map(d=>`<button class="${PLANDAY===d?'on':''}" onclick="PLANDAY='${d}';render()">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>
@@ -782,6 +805,11 @@ function vMore(){
  const notifState=("Notification" in window)?Notification.permission:"unsupported";
  return `
   <h1>Settings & Reminders</h1>
+  <h2>Weekly plan</h2>
+  <div class="card">
+    <div style="font-size:13px;color:var(--dim);line-height:1.5">Edit your recurring daily schedule — times, activities, and which items send reminders.</div>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="go('plan')">Edit weekly plan</button>
+  </div>
   <h2>iPhone reminders</h2>
   <div class="card">
     <div style="font-size:13px;line-height:1.55;color:var(--dim)">
@@ -892,6 +920,148 @@ setInterval(()=>{
 function openSheet(html){$("sheet").innerHTML=html;$("modal").classList.add("open")}
 function closeSheet(){$("modal").classList.remove("open")}
 $("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeSheet()});
+
+/* ---------- History (calendar + analytics) ---------- */
+let HISTM=(()=>{const d=new Date();return{y:d.getFullYear(),m:d.getMonth()}})();
+function dayStats(key){
+ const dt=new Date(key+"T12:00:00");
+ const wd=DAYS[dt.getDay()];
+ const items=DB.schedule[wd]||[];
+ const done=DB.done[key]||{};
+ const checked=items.filter(x=>done[x.id]).length;
+ const t=foodTotals(key), oz=DB.oz[key]||0, caff=caffTotal(key);
+ const wos=DB.log.filter(l=>l.date===key);
+ const hasData=checked>0||t.cal>0||oz>0||(DB.caff[key]||[]).length>0||wos.length>0;
+ const T=DB.targets;
+ const obj=[
+  {ok:items.length>0&&checked/items.length>=0.8,label:"Schedule ≥ 80% done",detail:checked+" / "+items.length+" items"},
+  {ok:t.cal>0&&t.cal<=T.cal*1.05,label:"Calories on target",detail:t.cal+" / "+T.cal+" cal"},
+  {ok:oz>=T.oz,label:"Water — 4 Owalas",detail:oz+" / "+T.oz+" oz"},
+  {ok:hasData&&caff<=T.caffeine,label:"Caffeine under limit",detail:caff+" / "+T.caffeine+" mg"},
+ ];
+ return {key,wd,items,done,checked,t,oz,caff,wos,hasData,obj,hit:obj.filter(o=>o.ok).length};
+}
+function keyOffset(off){const d=new Date();d.setDate(d.getDate()-off);
+ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function vHist(){
+ const {y,m}=HISTM;
+ const first=new Date(y,m,1), startDow=first.getDay(), dim=new Date(y,m+1,0).getDate();
+ const tk=todayKey();
+ const mtitle=first.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+ let cells='<div class="cal">'+["S","M","T","W","T","F","S"].map(w=>`<div class="wd">${w}</div>`).join("");
+ for(let i=0;i<startDow;i++)cells+='<div class="day blank"></div>';
+ for(let d=1;d<=dim;d++){
+  const key=y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+  let cls="";
+  if(key>tk)cls="future";
+  else{
+   const s=dayStats(key);
+   if(!s.hasData)cls="";
+   else if(s.hit===4)cls="g4";
+   else if(s.hit>=2)cls="g2";
+   else cls="g0";
+  }
+  if(key===tk)cls+=" today";
+  cells+=`<div class="day ${cls}" ${key<=tk?`onclick="daySheet('${key}')"`:""}>${d}</div>`;
+ }
+ cells+='</div>';
+ return `
+  <h1>History</h1>
+  <div class="sub">Tap any day for the full breakdown</div>
+  <div class="card" style="margin-top:12px">
+   <div class="mnav">
+    <button onclick="HISTM.m--;if(HISTM.m<0){HISTM.m=11;HISTM.y--}render()">‹</button>
+    <div class="mtitle">${mtitle}</div>
+    <button onclick="HISTM.m++;if(HISTM.m>11){HISTM.m=0;HISTM.y++}render()">›</button>
+   </div>
+   ${cells}
+   <div class="legend">
+     <span><i style="background:rgba(52,211,153,.6)"></i>All 4 hit</span>
+     <span><i style="background:rgba(251,191,36,.5)"></i>2–3</span>
+     <span><i style="background:rgba(248,113,113,.5)"></i>0–1</span>
+     <span><i style="background:var(--card2)"></i>No data</span>
+   </div>
+  </div>
+  ${histAnalytics()}`;
+}
+function histAnalytics(){
+ // last 30 days, only days with data
+ const T=DB.targets;
+ let daysData=0,perfect=0,checkedSum=0,itemSum=0;
+ const miss={};
+ for(let i=0;i<30;i++){
+  const key=keyOffset(i);
+  const s=dayStats(key);
+  if(!s.hasData)continue;
+  daysData++;if(s.hit===4)perfect++;
+  checkedSum+=s.checked;itemSum+=s.items.length;
+  for(const x of s.items){
+   if(!s.done[x.id]){
+    const k=x.what;
+    miss[k]=miss[k]||{miss:0,total:0};
+    miss[k].miss++;
+   }
+   (miss[x.what]=miss[x.what]||{miss:0,total:0}).total++;
+  }
+ }
+ const missTop=Object.entries(miss).filter(([k,v])=>v.miss>0)
+   .sort((a,b)=>b[1].miss-a[1].miss).slice(0,5);
+ // workouts last 30d
+ const cutoff=keyOffset(29);
+ const wos=DB.log.filter(l=>l.date>=cutoff);
+ const vol30=wos.reduce((a,l)=>a+volume(l),0);
+ // progressive overload: per exercise first vs last top weight (all time, ≥2 sessions)
+ const prog={};
+ for(const l of DB.log)for(const e of l.ex){
+  const top=Math.max(...e.sets.map(s=>s.w||0),0);
+  if(top<=0)continue;
+  (prog[e.name]=prog[e.name]||[]).push(top);
+ }
+ const gains=Object.entries(prog).filter(([n,v])=>v.length>=2)
+  .map(([n,v])=>({n,first:v[0],last:v[v.length-1],pct:Math.round((v[v.length-1]-v[0])/v[0]*100)}))
+  .sort((a,b)=>b.pct-a.pct);
+ const adhere=itemSum?Math.round(checkedSum/itemSum*100):0;
+ return `
+  <h2>Last 30 days</h2>
+  <div class="row" style="margin-bottom:8px">
+    <div class="stat"><div class="lbl">Perfect days</div><b>${perfect}</b> <span class="sub">/ ${daysData} tracked</span></div>
+    <div class="stat"><div class="lbl">Schedule adherence</div><b>${adhere}%</b></div>
+  </div>
+  <div class="row" style="margin-bottom:8px">
+    <div class="stat"><div class="lbl">Workouts</div><b>${wos.length}</b> <span class="sub">(${(wos.length/30*7).toFixed(1)}/wk)</span></div>
+    <div class="stat"><div class="lbl">Volume lifted</div><b>${Math.round(vol30).toLocaleString()}</b> <span class="sub">lb</span></div>
+  </div>
+  <h2>Most missed events</h2>
+  <div class="card" style="padding:6px 12px">
+   ${missTop.length?missTop.map(([k,v])=>`
+    <div class="arow"><div class="grow">${esc(k)}</div>
+      <div class="pill-count" style="color:var(--red)">missed ${v.miss}× / ${v.total}</div></div>`).join("")
+    :'<div class="empty">Nothing missed — or nothing tracked yet</div>'}
+  </div>
+  <h2>Progressive overload</h2>
+  <div class="card" style="padding:6px 12px">
+   ${gains.length?gains.map(g=>`
+    <div class="arow"><div class="grow">${esc(g.n)}</div>
+      <div class="sub" style="margin:0">${g.first} → ${g.last} lb</div>
+      <div class="pill-count" style="color:${g.pct>0?'var(--green)':g.pct<0?'var(--red)':'var(--dim)'}">${g.pct>0?"+":""}${g.pct}%</div></div>`).join("")
+    :'<div class="empty">Log the same exercise twice to see gains</div>'}
+  </div>`;
+}
+function daySheet(key){
+ const s=dayStats(key);
+ const missed=s.items.filter(x=>!s.done[x.id]);
+ openSheet(`
+  <h3>${fmtDate(key)}</h3>
+  <div class="sub">${s.hit} / 4 objectives hit${s.hasData?"":" · no data logged"}</div>
+  <div style="margin-top:10px">
+   ${s.obj.map(o=>`<div class="objline"><div class="mark ${o.ok?'ok':'no'}">${o.ok?"✓":"✕"}</div>
+     <div class="grow">${o.label}</div><div class="sub" style="margin:0">${o.detail}</div></div>`).join("")}
+  </div>
+  ${s.wos.length?`<h2 style="margin-top:12px">Workouts</h2>${s.wos.map(l=>`<div class="sub">${esc(l.name)} — ${l.ex.reduce((a,e)=>a+e.sets.length,0)} sets · ${Math.round(volume(l)).toLocaleString()} lb</div>`).join("")}`:""}
+  ${missed.length&&s.hasData?`<h2 style="margin-top:12px">Missed that day</h2>
+    <div style="max-height:30vh;overflow-y:auto">${missed.map(x=>`<div class="sub">${esc(x.time)} — ${esc(x.what)}</div>`).join("")}</div>`:""}
+  <button class="btn" style="width:100%;margin-top:14px" onclick="closeSheet()">Close</button>`);
+}
 
 /* ---------- motivation images (IndexedDB) ---------- */
 const MOTIV_DB="protocol_media", MOTIV_STORE="images";
