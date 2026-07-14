@@ -157,170 +157,191 @@ label{font-size:12px;color:var(--dim);font-weight:600;display:block;margin:10px 
 <div class="toast" id="toast"></div>
 <script>
 /* ================= DATA ================= */
-const DAYS=["sun","mon","tue","wed","thu","fri","sat"];
-const DAYNAMES={sun:"Sunday",mon:"Monday",tue:"Tuesday",wed:"Wednesday",thu:"Thursday",fri:"Friday",sat:"Saturday"};
 const uid=()=>Math.random().toString(36).slice(2,9);
 const OWALA=32, CAFF_LIMIT_DEFAULT=400, CAFF_CUTOFF=14*60; // 2:00pm
 
-function it(time,what,note="",tag="",remind=false){return{id:uid(),time,what,note,tag,remind}}
-function eveningBlock(){return[
-  it("7:30pm","Meal 2 — 900 cal / 80g protein","300g chicken/salmon/beef, lentils, 2 cups veg, sweet potato","food",true),
-  it("8:00pm","EATING WINDOW CLOSES","Caffeine ointment (scalp)","",true),
-  it("8:30pm","Magnesium Glycinate + Ashwagandha","",""),
-  it("9:00pm","L-Theanine · screens off","","",true),
-  it("9:02pm","Brush, floss, retainer, mouth tape","Tongue scrape first",""),
-  it("9:15pm","Melatonin 0.3mg","",""),
-  it("9:30pm","Warm shower","Temperature drop for sleep onset",""),
-  it("10:00pm","SLEEP","","",true)]}
-function morningBlock(){return[
-  it("6:30am","Wake","500ml water + 1/4 tsp Himalayan salt","",true),
-  it("6:35am","Sunlight 5–10 min","Outside, no sunglasses","")]}
-function workBlock(){return[
-  it("9:00am","Work begins","",""),
-  it("10:00am","Coffee #2 (~95mg)","",""),
-  it("10:30am","Coffee #3 / green tea","HARD CAFFEINE CUTOFF","hard",true),
-  it("12:00pm","Meal 1 — 900 cal / 70g protein","Creatine, Curcumin, Omega-3, Zinc, Saw Palmetto","food",true),
-  it("12:00pm","Mastic gum (post meal)","30–45 min, chew both sides",""),
-  it("12:50pm","45 min lunch walk","75 Hard walk, outdoor","hard",true),
-  it("1:35pm","Back at desk","","")]}
-
-function seedSchedule(){
- const s={};
- s.mon=[...morningBlock(),
-  it("6:40am","Collect dry cleaning","Pick up on way to gym",""),
-  it("6:45am","AM Strength — Push","Bench, OHP, incline DB, dips, laterals","wo",true),
-  it("7:35am","20 min Stairmaster","HR 130–150bpm","wo"),
-  it("7:55am","Hot shower","Steam shower post-training",""),
-  it("8:10am","Shave routine","WTG + ATG, witch hazel, niacinamide, Cicaplast, CeraVe SPF",""),
-  it("8:20am","Minoxidil foam","Temples + widow's peaks",""),
-  it("8:25am","Coffee #1 (~95mg)","Black only",""),
-  it("8:30am","Walk to work","12 min (~1,500 steps)",""),
-  ...workBlock(),
-  it("5:00pm","Work ends — walk home","12 min",""),
-  it("5:15pm","Pre-WO snack — 300 cal / 30g","Whey shake + banana + almonds","food",true),
-  it("5:30pm","PM Rugby session","Full training","wo",true),
-  it("6:45pm","PM Run (30 min)","Outdoor post-rugby, easy pace, 75 Hard","hard",true),
-  it("7:15pm","Home — shower","Post-sweat cleanse",""),
-  ...eveningBlock()];
- s.tue=[...morningBlock(),
-  it("6:45am","AM Strength — Pull","Deadlift, rows, pull-ups, face pulls, curls","wo",true),
-  it("7:35am","20 min Stairmaster","","wo"),
-  it("7:55am","Hot shower","Post-training steam shower",""),
-  it("8:10am","Shave routine","Full routine",""),
-  it("8:20am","Minoxidil foam","",""),
-  it("8:25am","Coffee #1","",""),
-  it("8:30am","Walk to work","12 min",""),
-  ...workBlock(),
-  it("5:00pm","Work ends — walk home","",""),
-  it("5:15pm","Pre-WO snack — 300 cal / 30g","","food",true),
-  it("5:30pm","PM Swimming","1,400–1,600m structured","wo",true),
-  it("6:45pm","Done — shower","",""),
-  ...eveningBlock()];
- s.wed=[...morningBlock(),
-  it("6:45am","AM Stretching session","Foam roll, hips, posterior chain, shoulders, spine","wo",true),
-  it("7:35am","40 min Stairmaster","HR 120–135bpm, active recovery","wo"),
-  it("8:15am","Hot shower","Post-training",""),
-  it("8:30am","Shave routine","",""),
-  it("8:40am","Minoxidil foam","",""),
-  it("8:45am","Coffee #1","",""),
-  it("8:50am","Walk to work","12 min",""),
-  ...workBlock(),
-  it("5:00pm","Work ends — walk home","",""),
-  it("5:15pm","Pre-WO snack (light)","Lower intensity day","food"),
-  it("5:30pm","45 min outdoor walk","75 Hard PM","hard",true),
-  it("6:15pm","Home","",""),
-  ...eveningBlock()];
- s.thu=[...morningBlock(),
-  it("6:40am","Microneedle session","0.5–0.75mm, temples + hairline before training",""),
-  it("6:50am","AM Strength — Upper Hypertrophy","Cable work, DB variations, high volume","wo",true),
-  it("7:40am","20 min Stairmaster","","wo"),
-  it("8:00am","Hot shower","Post-training steam shower",""),
-  it("8:15am","Shave routine","",""),
-  it("8:25am","Minoxidil foam","24hrs after microneedle — apply as normal",""),
-  it("8:30am","Coffee #1","",""),
-  it("8:35am","Walk to work","12 min",""),
-  ...workBlock(),
-  it("5:00pm","Work ends — walk home","",""),
-  it("5:15pm","Pre-WO snack — 300 cal / 30g","","food",true),
-  it("5:30pm","PM Swimming","1,400–1,600m structured","wo",true),
-  it("6:45pm","Done — shower","",""),
-  ...eveningBlock()];
- s.fri=[...morningBlock(),
-  it("6:45am","AM Strength — Full Body","Power cleans, front squat, weighted pull-ups, farmers carries","wo",true),
-  it("7:35am","20 min Stairmaster","","wo"),
-  it("7:55am","Cold shower","No shave Fridays",""),
-  it("8:10am","Minoxidil foam","Face cleanse only",""),
-  it("8:15am","Coffee #1","",""),
-  it("8:20am","Walk to work","12 min",""),
-  ...workBlock(),
-  it("2:00pm","Work ends","Early finish",""),
-  it("2:12pm","Walk to dry cleaner","Drop 7 shirts — collect Monday 6:40am","",true),
-  it("2:35pm","Home — rest","",""),
-  it("5:15pm","Pre-WO snack — 300 cal / 30g","","food",true),
-  it("5:30pm","PM Rugby session","","wo",true),
-  it("6:45pm","PM Run (30–40 min)","Outdoor, 75 Hard","hard",true),
-  it("7:15pm","Home — shower","",""),
-  ...eveningBlock()];
- s.sat=[...morningBlock(),
-  it("6:45am","AM Strength — Legs","Squat, RDL, leg press, lunges, calves","wo",true),
-  it("7:35am","20 min Stairmaster","","wo"),
-  it("7:55am","Cold shower","No shave",""),
-  it("8:10am","Minoxidil foam","",""),
-  it("8:15am","Coffee #1","",""),
-  it("9:15am","Coffee #2","",""),
-  it("10:30am","CAFFEINE CUTOFF","","hard",true),
-  it("10:30am","Leisure / errands / rest","",""),
-  it("12:00pm","Meal 1 — 900 cal / 70g protein","All AM supplements + creatine","food",true),
-  it("12:00pm","Mastic gum (post meal)","30–45 min",""),
-  it("1:00pm","45 min walk","75 Hard, outdoor","hard",true),
-  it("5:15pm","Pre-WO snack — 300 cal / 30g","","food",true),
-  it("5:30pm","PM Rugby session","","wo",true),
-  it("7:00pm","Home — shower","",""),
-  ...eveningBlock()];
- s.sun=[...morningBlock(),
-  it("6:45am","AM Stretching session","Full mobility — foam roll, hips, posterior chain, shoulders, spine","wo",true),
-  it("7:35am","40 min Stairmaster","Easy, HR 120–135bpm","wo"),
-  it("8:15am","Cold shower","No shave",""),
-  it("8:30am","Minoxidil foam","",""),
-  it("8:35am","Coffee #1","",""),
-  it("9:35am","Coffee #2","",""),
-  it("10:00am","Meal prep for week","Cook proteins, portion meals, prep snacks","",true),
-  it("10:30am","CAFFEINE CUTOFF","","hard",true),
-  it("12:00pm","Meal 1 — 900 cal / 70g protein","All AM supplements + creatine","food",true),
-  it("12:00pm","Mastic gum (post meal)","30–45 min",""),
-  it("1:00pm","Rest / reading / admin","",""),
-  it("3:00pm","Shopping","75 Hard walk — 2hrs on feet","hard",true),
-  it("5:00pm","Home — change for Mass","",""),
-  it("6:00pm","Mass","","",true),
-  it("7:15pm","Home","",""),
-  ...eveningBlock()];
- return s;
+/* ---------- 8-Week Rugby/CrossFit program (Jul 14 – Sep 7, 2026) ---------- */
+const E=(name,sets,reps)=>({name,sets,reps});
+function wo(time,title,note,exercises){return{time,title,tag:"wo",note:note||"",exercises:exercises||[]}}
+function test(time,title,note,exercises){return{time,title,tag:"hard",note:note||"",exercises:exercises||[]}}
+function upperA(phase){
+ if(phase==="taper")return[E("Flat Barbell Bench Press",3,"8"),E("Seated DB Shoulder Press",2,"10"),E("Incline DB Bench Press",2,"10"),E("Lat Pulldown",2,"10"),E("Face Pulls",2,"15")];
+ if(phase==="p2")return[E("Flat Barbell Bench Press",4,"6-8"),E("Seated DB Shoulder Press",3,"8-10"),E("Incline DB Bench Press",3,"8-10"),E("Lat Pulldown",3,"10"),E("Cable Lateral Raise",3,"15"),E("Rear Delt Fly",3,"15"),E("Triceps Rope Pushdown",3,"12"),E("Face Pulls",2,"15")];
+ return[E("Flat Barbell Bench Press",4,"8-10"),E("Seated DB Shoulder Press",3,"10-12"),E("Incline DB Bench Press",3,"10-12"),E("Lat Pulldown",3,"10-12"),E("Cable Lateral Raise",3,"15"),E("Rear Delt Fly",3,"15"),E("Triceps Rope Pushdown",3,"12-15"),E("Face Pulls",2,"15")];
 }
-const ex=(name,sets,reps)=>({name,sets,reps});
-function seedRoutines(){return[
- {id:uid(),name:"Push",days:["mon"],time:"6:45am",cardio:"20 min Stairmaster (HR 130–150)",exercises:[
-  ex("Bench press",4,"6-8"),ex("Overhead press",3,"8-10"),ex("Incline DB press",3,"8-12"),ex("Tricep dips",3,"10-12"),ex("Lateral raises",3,"12-15")]},
- {id:uid(),name:"Pull",days:["tue"],time:"6:45am",cardio:"20 min Stairmaster",exercises:[
-  ex("Deadlift",4,"5"),ex("Barbell rows",4,"8"),ex("Pull-ups",3,"8-10"),ex("Face pulls",3,"12-15"),ex("Bicep curls",3,"10-12")]},
- {id:uid(),name:"Stretching & Mobility",days:["wed","sun"],time:"6:45am",cardio:"40 min Stairmaster (HR 120–135)",exercises:[
-  ex("Foam roll",1,"5 min"),ex("Hip flexor stretch",2,"60s/side"),ex("Posterior chain stretch",2,"60s"),ex("Shoulder mobility",2,"10 reps"),ex("Spine mobility",2,"10 reps")]},
- {id:uid(),name:"Upper Hypertrophy",days:["thu"],time:"6:50am",cardio:"20 min Stairmaster",exercises:[
-  ex("Cable flyes",3,"12-15"),ex("Cable rows",3,"12-15"),ex("DB shoulder press",3,"10-12"),ex("DB curls",3,"12-15"),ex("Cable pushdowns",3,"12-15")]},
- {id:uid(),name:"Full Body Compounds",days:["fri"],time:"6:45am",cardio:"20 min Stairmaster",exercises:[
-  ex("Power cleans",5,"3"),ex("Front squat",4,"6"),ex("Weighted pull-ups",4,"6-8"),ex("Farmers carries",4,"40m")]},
- {id:uid(),name:"Legs",days:["sat"],time:"6:45am",cardio:"20 min Stairmaster",exercises:[
-  ex("Squat",4,"6-8"),ex("Romanian deadlift",4,"8-10"),ex("Leg press",3,"10-12"),ex("Walking lunges",3,"10/leg"),ex("Calf raises",4,"12-15")]},
- {id:uid(),name:"Swimming",days:["tue","thu"],time:"5:30pm",cardio:"",exercises:[
-  ex("Warm-up freestyle",1,"200m"),ex("Drill set",4,"50m"),ex("Main set",8,"100m (30s rest)"),ex("Sprints",4,"25m all-out"),ex("Cool-down",1,"200m")]},
- {id:uid(),name:"Rugby + Run",days:["mon","fri"],time:"5:30pm",cardio:"",exercises:[
-  ex("Rugby training",1,"full session"),ex("Outdoor run",1,"30-40 min easy")]},
- {id:uid(),name:"Rugby",days:["sat"],time:"5:30pm",cardio:"",exercises:[
-  ex("Rugby training",1,"full session")]},
-]}
+function upperB(phase){
+ if(phase==="taper")return[E("Weighted Pull-ups",3,"8"),E("Barbell Bent-Over Row",3,"8"),E("Seated Cable Row",2,"10"),E("Single-Arm DB Row",2,"10/side"),E("Arnold Press",2,"10"),E("Barbell Curl",2,"10")];
+ if(phase==="p2")return[E("Weighted Pull-ups",4,"6-8"),E("Barbell Bent-Over Row",4,"6-8"),E("Seated Cable Row",3,"10"),E("Single-Arm DB Row",3,"10/side"),E("DB Shrugs",3,"12"),E("Arnold Press",3,"10"),E("Barbell Curl",3,"10"),E("Hammer Curl",2,"12")];
+ return[E("Weighted Pull-ups",4,"8-10"),E("Barbell Bent-Over Row",4,"8-10"),E("Seated Cable Row",3,"10-12"),E("Single-Arm DB Row",3,"10-12/side"),E("DB Shrugs",3,"12-15"),E("Arnold Press",3,"10-12"),E("Barbell Curl",3,"10-12"),E("Hammer Curl",2,"12-15")];
+}
+const PROGRAM_START=new Date(2026,6,14); // Jul 14 2026 (Tuesday)
+const PROGRAM_END=new Date(2026,8,7);    // Sep 7 2026
+const CYCLE=["tue","wed","thu","fri","sat","sun","mon"]; // program week runs Tue→Mon
+const PHASE_LABEL=["Phase 1 — Rebuild","Phase 1 — Rebuild","Phase 1 — Rebuild","Phase 1 — Rebuild (Benchmark)","Phase 2 — Explosive Power","Phase 2 — Explosive Power","Phase 2 — Explosive Power (Peak)","Phase 2 — Taper"];
+
+const WEEKS=[
+ { // Week 1
+  tue:[wo("7:00am","AM Pitch","Falling Starts 5×10m · Scrum Starts 5×10m · A-Skips 3×20m\nCF Finisher \"Engine Builder\" (AMRAP 12): 10 cal Assault Bike, 10 KB Swings (53/35), 10 Box Step-Ups, 10 Push-ups"),
+      wo("5:15pm","PM Gym — Clean Day","Light (~40%) — focus on bar speed and clean positions",[E("Hang Power Clean",5,"10"),E("Clean Pull",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","15–20 min continuous, tempo pace (comfortably hard)"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×8\nWOD — \"First Grind\" (For Time, cap 15 min): 21-15-9 KB Swings + Assault Bike Cal, then 400m run",[E("Back Squat",4,"6"),E("Push Press",3,"6")])],
+  thu:[wo("7:00am","AM Pitch","100m Tempo Strides 8×75% · Plank 3×45–60s"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","Week 1 baseline — pick a weight you could do for 20+ reps if pushed",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"12 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Bike or swim, easy: 20–25 min",upperB("p1"))],
+  sat:[wo("7:00am","Long, Slow Run","30 min continuous, easy conversational pace (zone 2)"),
+      wo("7:50am","AM Pitch","Pro Agility Shuttle 3 reps · Sled/Partner Push 4×15m · Lateral A-Skips 2×20m (times estimated)"),
+      wo("8:35am","PM Gym (Heavy)","Finisher — 10-min EMOM: 3 Burpees + 5 KB Swings",[E("Hex Bar Deadlift",4,"8"),E("Barbell Bench Press",4,"8"),E("Heavy Pendlay Row",4,"8"),E("Snatch-Grip Shrugs",3,"12"),E("Farmer's Carries",3,"40m")])],
+  sun:[wo("7:00am","AM Pitch","\"Tackle-to-Feet\" ruck simulator: drop-pop-sprint 10m-jog 10m ×4 = 1 set, 3 sets, rest 2.5 min\nBronco (light, 80% effort): 3 rounds (20/40/60m out-and-back)"),
+      wo("5:15pm","PM Gym (Heaviest)","Finisher — \"Sunday Grinder\" AMRAP 10: 5 Cal Row, 10 Air Squats, 5 Push Press (empty bar)",[E("Front Squat",3,"6"),E("Standing OHP",3,"8"),E("Chest-Supported Row",3,"10"),E("Pallof Press",3,"12/side")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Bike or swim, easy: 20–25 min",upperA("p1"))],
+ },
+ { // Week 2
+  tue:[wo("7:00am","AM Pitch","Falling Starts 5×10m (90%) · Scrum Starts 5×10m · A-Skips 3×20m\nCF Finisher \"Engine Builder v2\" (AMRAP 13): 12 cal Bike, 10 KB Swings, 10 Box Step-Ups, 12 Push-ups"),
+      wo("5:15pm","PM Gym — Clean Day","Light — hold Week 1 load, focus on bar speed",[E("Hang Power Clean",5,"10"),E("Clean Pull",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","20 min continuous, tempo pace"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×8\nWOD — \"Grinder\" (For Time, cap 16 min): 800m run, then 21-15-9 Thrusters (empty bar/light) + Burpees",[E("Back Squat",4,"6"),E("Push Press",3,"6")])],
+  thu:[wo("7:00am","AM Pitch","100m Tempo Strides 9×75% · Plank 3×60s"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","+5–10 lb from Week 1",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"14 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Bike or swim, easy: 25 min",upperB("p1"))],
+  sat:[wo("7:00am","Long, Slow Run","35 min continuous, easy pace"),
+      wo("7:55am","AM Pitch","Pro Agility Shuttle 4 reps · Sled/Partner Push 5×15m · Lateral A-Skips 3×20m (times estimated)"),
+      wo("8:40am","PM Gym (Heavy)","Finisher — 12-min EMOM: 4 Burpees + 6 KB Swings",[E("Hex Bar Deadlift",4,"8"),E("Barbell Bench Press",4,"8"),E("Heavy Pendlay Row",4,"8"),E("Snatch-Grip Shrugs",3,"12"),E("Farmer's Carries",3,"40m")])],
+  sun:[wo("7:00am","AM Pitch","Ruck simulator: 4 sets, rest 2.5 min\nBronco (85% effort): 4 rounds"),
+      wo("5:15pm","PM Gym (Heaviest)","Finisher — \"Sunday Grinder v2\" AMRAP 11: 6 Cal Row, 10 Air Squats, 6 Push Press",[E("Front Squat",3,"6"),E("Standing OHP",3,"8"),E("Chest-Supported Row",3,"10"),E("Pallof Press",3,"12/side")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Bike or swim, easy: 25 min",upperA("p1"))],
+ },
+ { // Week 3
+  tue:[wo("7:00am","AM Pitch","Falling Starts 5×10m (95%) · Scrum Starts 6×10m · A-Skips 3×20m\nCF Finisher \"Ladder\" (12 min): 1-2-3...up the ladder — Assault Bike Cal + Burpees, add 1 rep each round"),
+      wo("5:15pm","PM Gym — Clean Day","Light — bar speed over load",[E("Hang Power Clean",5,"10"),E("Clean Pull",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","20–22 min continuous, tempo pace"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×10\nWOD — \"Midweek Chipper\" (For Time, cap 18 min): 50 Wall Balls, 40 KB Swings, 30 Box Step-Ups, 20 Push Press, 10 Burpees",[E("Back Squat",4,"5"),E("Push Press",3,"5")])],
+  thu:[wo("7:00am","AM Pitch","100m Tempo Strides 10×75% · Plank 3×60s"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","+5–10 lb from Week 2",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"14 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Bike or swim, easy: 25–30 min",upperB("p1"))],
+  sat:[wo("7:00am","Long, Slow Run","40 min continuous, easy pace"),
+      wo("8:00am","AM Pitch","Pro Agility Shuttle 4 reps · Sled/Partner Push 5×15m · Lateral A-Skips 3×20m (times estimated)"),
+      wo("8:45am","PM Gym (Heavy)","Finisher — 12-min EMOM: 5 Burpees + 6 KB Swings",[E("Hex Bar Deadlift",4,"6"),E("Barbell Bench Press",4,"6"),E("Heavy Pendlay Row",4,"8"),E("Snatch-Grip Shrugs",3,"12"),E("Farmer's Carries",3,"45m")])],
+  sun:[wo("7:00am","AM Pitch","Ruck simulator: 4 sets, rest 2 min\nBronco (90% effort): 4 rounds"),
+      wo("5:15pm","PM Gym (Heaviest)","Finisher — \"Sunday Grinder v3\" AMRAP 12: 7 Cal Row, 12 Air Squats, 7 Push Press",[E("Front Squat",3,"5"),E("Standing OHP",3,"6"),E("Chest-Supported Row",3,"10"),E("Pallof Press",3,"12/side")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Bike or swim, easy: 25–30 min",upperA("p1"))],
+ },
+ { // Week 4 — Benchmark Week
+  tue:[wo("7:00am","AM Pitch","Falling Starts 5×10m (100%) · Scrum Starts 6×10m · A-Skips 3×20m\nCF Finisher \"Sprint Repeats\" (8 rounds): 20s max-effort Assault Bike / 40s rest"),
+      wo("5:15pm","PM Gym — Clean Day","Light",[E("Hang Power Clean",5,"10"),E("Clean Pull",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","15 min continuous, tempo pace (lighter — recovery emphasis this week)"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×10\nWOD — \"Steady Test\" (For Time, cap 15 min): 15-12-9 Thrusters + Pull-ups, then 500m row",[E("Back Squat",4,"5"),E("Push Press",3,"5")])],
+  thu:[wo("7:00am","AM Pitch","100m Tempo Strides 8×75% (reduced — recovery emphasis) · Plank 2×60s"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","+5–10 lb from Week 3",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"16 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Hold load · Bike or swim, easy: 25 min",upperB("p1"))],
+  sat:[wo("7:00am","Long, Slow Run","30 min continuous, easy pace (shortened — protecting legs ahead of Sunday's Bronco test)"),
+      wo("7:50am","AM Pitch","Pro Agility Shuttle 3 reps (fresh legs) · Sled/Partner Push 4×15m · Lateral A-Skips 2×20m (times estimated)"),
+      wo("8:35am","PM Gym","Hold load · Finisher — 8-min EMOM (light): 3 Burpees + 5 KB Swings",[E("Hex Bar Deadlift",3,"5"),E("Barbell Bench Press",3,"5"),E("Heavy Pendlay Row",3,"8"),E("Snatch-Grip Shrugs",2,"12"),E("Farmer's Carries",2,"45m")])],
+  sun:[test("7:00am","Bronco Benchmark Test #1","Full warm-up: 10 min dynamic mobility + build-up strides\nBronco Test — full effort: 3 rounds. Target sub-6:15. Record your time."),
+      wo("5:15pm","PM Gym (light — testing day)","Testing day, not a heavy lift day · Mobility & cooldown: 15 min",[E("Front Squat",2,"5"),E("Standing OHP",2,"8")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Fresh week, hold last week's load · Bike or swim, easy: 25 min",upperA("p1"))],
+ },
+ { // Week 5 — Phase 2 begins
+  tue:[wo("7:00am","AM Pitch","Pro Agility Shuttle (5-10-5) 4 reps · Swerving Sprints 4×30m\nCF Finisher \"Power Hour\" (AMRAP 14): 10 cal Bike, 8 Box Jumps, 10 KB Swings (heavier), 8 Burpees"),
+      wo("5:15pm","PM Gym — Clean Day","Light — small volume bump for Phase 2, not a load increase",[E("Hang Power Clean",5,"12"),E("Clean Pull",3,"10"),E("Light Front Squat",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","20 min continuous, tempo pace"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×10\nWOD — \"Power WOD\" (For Time, cap 16 min): 21-15-9 Power Cleans (light) + Toes-to-Bar, then 400m run",[E("Hang Power Clean",4,"3"),E("Back Squat",4,"5")])],
+  thu:[wo("7:00am","AM Pitch","Forward Tempo Strides 10×75m @70–75% · Malaga Agility Drill 4 reps · Heavy Suitcase Carries 2×30m/side"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","+5–10 lb from Week 4",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"16 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Heavier, lower rep — power phase · Bike or swim, easy: 25–30 min",upperB("p2"))],
+  sat:[wo("7:00am","Long, Slow Run","40 min continuous, easy pace"),
+      wo("8:00am","AM Pitch","Short-Space Pro Agility (3-5-3) 5 reps · Medicine Ball Grunt Throws 4 reps (times estimated)"),
+      wo("8:45am","PM Gym","Finisher — 10-min EMOM: 5 KB Swings + 4 Box Jumps",[E("Hang Power Clean",4,"3"),E("Heavy Back Squat",4,"4-5"),E("Good Mornings",3,"6"),E("Weighted Pull-ups",4,"5-6"),E("Farmers Walks",3,"40m")])],
+  sun:[wo("7:00am","AM Pitch","\"Ruck-Reload\" simulator: drop-pop-sprint-drop-pop-drive-jog block ×3 = 1 set, 4 sets, rest 3 min\nBronco (85% effort): 4 rounds"),
+      wo("5:15pm","PM Gym (Heaviest)","Finisher — \"Sunday Power\" AMRAP 12: 8 Cal Bike, 10 Wall Balls, 6 Burpees · Capacity add-on: bike or swim, moderate, 20 min",[E("Push Press",3,"4"),E("Incline DB Bench",3,"8"),E("Chest-Supported Row",3,"10")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Heavier, lower rep · Bike or swim, easy: 25–30 min",upperA("p2"))],
+ },
+ { // Week 6
+  tue:[wo("7:00am","AM Pitch","Pro Agility Shuttle 4 reps · Swerving Sprints 4×30m (full speed)\nCF Finisher \"Power Hour v2\" (AMRAP 15): 12 cal Bike, 8 Box Jumps, 12 KB Swings, 10 Burpees"),
+      wo("5:15pm","PM Gym — Clean Day","Light",[E("Hang Power Clean",5,"12"),E("Clean Pull",3,"10"),E("Light Front Squat",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","22 min continuous, tempo pace"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×10\nWOD — \"Power WOD v2\" (cap 17 min): 21-15-9 Power Cleans + T2B, then 500m row",[E("Hang Power Clean",4,"3"),E("Back Squat",4,"5")])],
+  thu:[wo("7:00am","AM Pitch","Forward Tempo Strides 10×75m · Malaga Agility Drill 5 reps · Heavy Suitcase Carries 3×30m/side"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","+5–10 lb from Week 5",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"16 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Bike or swim, easy: 30 min",upperB("p2"))],
+  sat:[wo("7:00am","Long, Slow Run","45 min continuous, easy pace"),
+      wo("8:05am","AM Pitch","Short-Space Pro Agility 6 reps · Medicine Ball Grunt Throws 5 reps (times estimated)"),
+      wo("8:50am","PM Gym","Finisher — 12-min EMOM: 6 KB Swings + 5 Box Jumps",[E("Hang Power Clean",4,"3"),E("Heavy Back Squat",4,"4"),E("Good Mornings",3,"6"),E("Weighted Pull-ups",4,"5-6"),E("Farmers Walks",3,"40m")])],
+  sun:[wo("7:00am","AM Pitch","Ruck-Reload simulator: 4 sets, rest 3 min\nBronco (90% effort): 4 rounds"),
+      wo("5:15pm","PM Gym (Heaviest)","Finisher — \"Sunday Power v2\" AMRAP 13: 10 Cal Bike, 10 Wall Balls, 8 Burpees · Capacity add-on: bike or swim, moderate, 22 min",[E("Push Press",3,"4"),E("Incline DB Bench",3,"8"),E("Chest-Supported Row",3,"10")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Bike or swim, easy: 30 min",upperA("p2"))],
+ },
+ { // Week 7 — Peak Week
+  tue:[wo("7:00am","AM Pitch","Pro Agility Shuttle 4 reps (full intensity) · Swerving Sprints 5×30m\nCF Finisher \"Peak Output\" (AMRAP 16): 14 cal Bike, 10 Box Jumps, 14 KB Swings, 10 Burpees"),
+      wo("5:15pm","PM Gym — Clean Day","Light",[E("Hang Power Clean",5,"12"),E("Clean Pull",3,"10"),E("Light Front Squat",3,"10"),E("Front Rack Carry",3,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","25 min continuous, tempo pace (peak duration for the block)"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 3×10 / Box Jumps 3×10\nWOD — \"Peak WOD\" (cap 18 min): 21-15-9 Power Cleans + T2B, then 600m row",[E("Hang Power Clean",4,"2-3"),E("Back Squat",4,"4-5")])],
+  thu:[wo("7:00am","AM Pitch","Forward Tempo Strides 10×75m · Malaga Agility Drill 5 reps · Heavy Suitcase Carries 3×30m/side"),
+      wo("5:15pm","PM Gym — Squat/RDL Day","+5–10 lb from Week 6 — peak volume load",[E("Back Squat",4,"12"),E("Romanian Deadlift",4,"12"),E("Walking Lunge",2,"16 steps")])],
+  fri:[wo("7:00am","Upper Body B (Pull/Back) + Bike/Swim","Peak load · Bike or swim, easy: 30 min",upperB("p2"))],
+  sat:[wo("7:00am","Long, Slow Run","50 min continuous, easy pace (peak duration for the block)"),
+      wo("8:10am","AM Pitch","Short-Space Pro Agility 6 reps (full speed) · Medicine Ball Grunt Throws 5 reps (times estimated)"),
+      wo("8:55am","PM Gym","Peak load · Finisher — 12-min EMOM: 6 KB Swings + 6 Box Jumps",[E("Hang Power Clean",4,"2-3"),E("Heavy Back Squat",4,"4"),E("Good Mornings",3,"6"),E("Weighted Pull-ups",4,"5-6"),E("Farmers Walks",3,"45m")])],
+  sun:[test("7:00am","AM Pitch — Bronco Benchmark Test #2","Ruck-Reload simulator: 4 sets, rest 3 min\nBronco Test — full effort: target sub-6:00"),
+      wo("5:15pm","PM Gym (light — protect legs after Bronco)","Capacity add-on: bike or swim, moderate, 20 min",[E("Push Press",2,"4"),E("Incline DB Bench",2,"8"),E("Chest-Supported Row",2,"10")])],
+  mon:[wo("7:00am","Upper Body A (Push/Chest) + Bike/Swim","Peak load · Bike or swim, easy: 30 min",upperA("p2"))],
+ },
+ { // Week 8 — Taper Week
+  tue:[wo("7:00am","AM Pitch","Pro Agility Shuttle 3 reps (sharp, not exhausting) · Swerving Sprints 4×30m\nCF Finisher \"Sharpener\" (AMRAP 8, lighter): 8 cal Bike, 6 Box Jumps, 8 KB Swings"),
+      wo("5:15pm","PM Gym — Clean Day","Drop volume for taper",[E("Hang Power Clean",4,"10"),E("Clean Pull",2,"10"),E("Front Rack Carry",2,"20m")])],
+  wed:[wo("7:00am","AM Tempo Run","15 min continuous, tempo pace (taper)"),
+      wo("5:15pm","PM CrossFit Strength + WOD","Ring Rows 2×10 / Box Jumps 2×8\nWOD — \"Taper Test\" (cap 12 min, moderate pace): 15-12-9 Power Cleans (light) + T2B",[E("Hang Power Clean",3,"2"),E("Back Squat",3,"4")])],
+  thu:[wo("7:00am","AM Pitch","Forward Tempo Strides 6×75m · Mobility & stretch 15 min"),
+      wo("5:15pm","PM Gym — Squat/RDL Day (Taper)","Hold Week 7 load, drop a set",[E("Back Squat",3,"12"),E("Romanian Deadlift",3,"12"),E("Walking Lunge",2,"12 steps")])],
+  fri:[wo("7:00am","Upper Body B (moderate volume) + Bike/Swim","Drop volume, hold load · Bike or swim, easy: 25 min",upperB("taper"))],
+  sat:[wo("7:00am","Long, Slow Run","30 min continuous, easy pace (taper — reduced from peak)"),
+      wo("7:50am","AM Pitch","Pro Agility Shuttle 3 reps · Medicine Ball Grunt Throws 3 reps (times estimated)"),
+      wo("8:35am","PM Gym (Moderate)","Hold load · Finisher — 8-min EMOM (light): 4 KB Swings + 3 Box Jumps",[E("Back Squat",3,"4"),E("Bench Press",3,"5"),E("Pendlay Row",3,"6")])],
+  sun:[test("7:00am","Final Bronco Benchmark Test","Full warm-up: 10 min dynamic mobility\nBronco Test — full effort: record final time, compare to Aug 9 and Aug 30"),
+      wo("5:15pm","PM Gym (very light)","Mobility & cooldown: 15 min",[E("Front Squat",2,"5"),E("OHP",2,"6")])],
+  mon:[wo("7:00am","Upper Body A (moderate volume) + Bike/Swim","Drop volume, hold load · Bike or swim, easy: 25 min — reflect on the block, note Bronco progression across Aug 9 / Aug 30 / Sep 6",upperA("taper"))],
+ },
+];
+
+function it(time,what,note="",tag="",remind=false,exercises){return{id:uid(),time,what,note,tag,remind,exercises:exercises||[]}}
+function stripTime(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())}
+function daysBetween(a,b){return Math.round((stripTime(b)-stripTime(a))/86400000)}
+function programPosition(date){
+ const diff=daysBetween(PROGRAM_START,date);
+ const week=Math.max(0,Math.min(7,Math.floor(diff/7)));
+ const cyclePos=((diff%7)+7)%7;
+ return{week,cyclePos,cycleKey:CYCLE[cyclePos]};
+}
+function dateKeyOf(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function parseDateKey(k){const[y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d)}
+function buildDayItems(date){
+ const{week,cycleKey}=programPosition(date);
+ const sessions=WEEKS[week][cycleKey];
+ const items=[];
+ items.push(it("6:45am","Wake","Open shades · creatine, saw palmetto, omeprazole with water","",true));
+ if(cycleKey==="sat"){
+  for(const s of sessions)items.push(it(s.time,s.title,s.note,s.tag,true,s.exercises));
+  items.push(it("6:30pm","Dinner","No eating after 8:00pm","",true));
+ }else{
+  items.push(it(sessions[0].time,sessions[0].title,sessions[0].note,sessions[0].tag,true,sessions[0].exercises));
+  items.push(it("8:15am","Back from AM training","",""));
+  items.push(it("9:15am","At work","",""));
+  items.push(it("5:00pm","Home from work","",""));
+  if(sessions[1])items.push(it(sessions[1].time,sessions[1].title,sessions[1].note,sessions[1].tag,true,sessions[1].exercises));
+  items.push(it("8:00pm","EATING WINDOW CLOSES","No eating after 8:00pm","",true));
+ }
+ items.push(it("9:00pm","PM sleep supplements","Minoxidil + caffeine (hair) · make tomorrow's lunch","",true));
+ items.push(it("10:00pm","Screens off","Reading until bed","",true));
+ return items;
+}
+function getScheduleForDate(date){
+ const key=dateKeyOf(date);
+ if(!DB.schedule[key]){DB.schedule[key]=buildDayItems(date);save()}
+ return DB.schedule[key];
+}
 
 const DEFAULTS={
  targets:{cal:2100,protein:180,fiber:35,carbs:175,fat:75,oz:128,caffeine:CAFF_LIMIT_DEFAULT},
- schedule:null,routines:null,
+ schedule:{}, // date ("YYYY-MM-DD") -> items[], lazily generated from the 8-week program
  food:{},   // date -> [{id,name,cal,p,f,c,fat}]
  oz:{},     // date -> ounces of water
  caff:{},   // date -> [{id,name,mg,time}]
@@ -331,14 +352,9 @@ const DEFAULTS={
 let DB;
 function migrateV1(v1){
  const d=JSON.parse(JSON.stringify(DEFAULTS));
- d.schedule=v1.schedule||null; d.done=v1.done||{}; d.food=v1.food||{}; d.remindersOn=!!v1.remindersOn;
+ d.done=v1.done||{}; d.food=v1.food||{}; d.remindersOn=!!v1.remindersOn;
  if(v1.targets)Object.assign(d.targets,{cal:v1.targets.cal||2100,protein:v1.targets.protein||180,fiber:v1.targets.fiber||35});
  for(const k in (v1.water||{})) d.oz[k]=Math.round(v1.water[k]/29.57);
- if(v1.routines) d.routines=v1.routines.map(r=>({
-   id:r.id,name:r.name,days:r.days||[],time:r.time||"5:30pm",
-   cardio:(r.ex||"").split("\n").filter(l=>l.trim().startsWith("+")).map(l=>l.replace(/^\+\s*/,"")).join(" · "),
-   exercises:(r.ex||"").split("\n").map(l=>l.trim()).filter(l=>l&&!l.startsWith("+")).map(l=>ex(l,3,"8-12"))
- }));
  return d;
 }
 function load(){
@@ -347,15 +363,15 @@ function load(){
    let v1=null;try{v1=JSON.parse(localStorage.getItem("protocol_v1"))}catch(e){}
    DB=v1?migrateV1(v1):JSON.parse(JSON.stringify(DEFAULTS));
  }
- if(!DB.schedule)DB.schedule=seedSchedule();
- if(!DB.routines||!DB.routines.length)DB.routines=seedRoutines();
+ // old weekday-keyed schedule (mon/tue/...) is incompatible with the new dated 8-week program — reset it
+ if(!DB.schedule||DB.schedule.mon||DB.schedule.tue)DB.schedule={};
+ delete DB.routines;
  DB.log=DB.log||[];DB.oz=DB.oz||{};DB.caff=DB.caff||{};
  const T=DEFAULTS.targets;for(const k in T)if(DB.targets[k]==null)DB.targets[k]=T[k];
  save();
 }
 function save(){localStorage.setItem("protocol_v2",JSON.stringify(DB))}
 const todayKey=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
-const todayDay=()=>DAYS[new Date().getDay()];
 const nowMin=()=>new Date().getHours()*60+new Date().getMinutes();
 function toMin(t){
  const m=t.trim().toLowerCase().match(/^(\d{1,2}):(\d{2})\s*(am|pm)$/);if(!m)return 0;
@@ -368,7 +384,7 @@ function to24(t){const m=toMin(t);return String(Math.floor(m/60)).padStart(2,"0"
 function from24(s){if(!s||!/^\d{1,2}:\d{2}$/.test(s))return "";let[h,m]=s.split(":").map(Number);const ap=h<12?"am":"pm";const h12=h%12||12;return h12+":"+String(m).padStart(2,"0")+ap}
 
 /* ================= UI ================= */
-let TAB="today", PLANDAY=todayDay(), GYM=null, BOOKVIEW="history", BOOKEX=null, EDITMODE=false;
+let TAB="today", PLANDATE=todayKey(), GYM=null, BOOKVIEW="history", BOOKEX=null, EDITMODE=false;
 const $=id=>document.getElementById(id);
 function toast(msg,warn){const t=$("toast");t.textContent=msg;t.className="toast"+(warn?" warn":"");t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>t.style.display="none",1800)}
 
@@ -412,19 +428,21 @@ function bottlesHTML(oz){
  return html+'</div>';
 }
 function vToday(){
- const day=todayDay(),date=todayKey(),items=[...DB.schedule[day]].sort((a,b)=>toMin(a.time)-toMin(b.time));
+ const date=todayKey(),dateObj=new Date(),items=[...getScheduleForDate(dateObj)].sort((a,b)=>toMin(a.time)-toMin(b.time));
  const done=DB.done[date]||{};
  const t=foodTotals(date),T=DB.targets,oz=DB.oz[date]||0,caff=caffTotal(date);
  const nMin=nowMin();
  let nextId=null;for(const x of items){if(!done[x.id]&&toMin(x.time)>=nMin-30){nextId=x.id;break}}
  const bar=(v,max,color)=>`<div class="bar"><i style="width:${Math.min(100,v/max*100)}%;background:${color}"></i></div>`;
- const dn=new Date().toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
+ const dn=dateObj.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
  const doneCount=items.filter(x=>done[x.id]).length;
  const owalasDone=(oz/OWALA), pastCut=nMin>=CAFF_CUTOFF;
+ const{week}=programPosition(dateObj);
  return `
-  <div class="row"><h1 class="grow">${DAYNAMES[day]}</h1>
+  <div class="row"><h1 class="grow">${dateObj.toLocaleDateString(undefined,{weekday:"long"})}</h1>
    <button class="btn small ${EDITMODE?'primary':''}" onclick="EDITMODE=!EDITMODE;render()">${EDITMODE?'Done':'Edit'}</button></div>
-  <div class="sub">${dn} · ${doneCount}/${items.length} complete</div>
+  <div class="sub">${dn} · Week ${week+1} of 8 · ${PHASE_LABEL[week]}</div>
+  <div class="sub">${doneCount}/${items.length} complete</div>
   <div class="row" style="margin:12px 0 8px">
     <div class="stat"><div class="lbl">Calories</div><b>${t.cal}</b> <span class="sub">/ ${T.cal}</span>${bar(t.cal,T.cal,"var(--accent)")}</div>
     <div class="stat"><div class="lbl">Protein</div><b>${t.p}g</b> <span class="sub">/ ${T.protein}</span>${bar(t.p,T.protein,"var(--green)")}</div>
@@ -454,20 +472,20 @@ function vToday(){
   <div class="row"><h2 class="grow">Schedule</h2>${EDITMODE?`<span class="sub" style="margin:14px 0 8px">Tap a row to edit</span>`:''}</div>
   <div class="card" style="padding:6px 10px">
    ${items.map(x=>`
-    <div class="tl-item ${done[x.id]?'done':''} ${!EDITMODE&&x.id===nextId?'now':''} ${EDITMODE?'editing':''}" onclick="${EDITMODE?`editItem('${x.id}','${day}')`:`tapItem('${x.id}')`}">
+    <div class="tl-item ${done[x.id]?'done':''} ${!EDITMODE&&x.id===nextId?'now':''} ${EDITMODE?'editing':''}" onclick="${EDITMODE?`editItem('${x.id}','${date}')`:`tapItem('${x.id}')`}">
       <div class="time">${esc(x.time)}</div>
-      <div class="what">${esc(x.what)}${x.tag?` <span class="tag ${x.tag}">${x.tag==='wo'?'workout':x.tag==='hard'?'75 hard':'food'}</span>`:''}
+      <div class="what">${esc(x.what)}${x.tag?` <span class="tag ${x.tag}">${x.tag==='wo'?'workout':x.tag==='hard'?'test':'food'}</span>`:''}
         ${x.note?`<div class="note">${esc(x.note)}</div>`:''}</div>
       ${EDITMODE?`<div class="chk edit">${PENCIL}</div>`:`<div class="chk" onclick="event.stopPropagation();toggleDone('${x.id}')">✓</div>`}
     </div>`).join("")}
-   ${EDITMODE?`<div style="padding:10px 4px 6px"><button class="btn primary" style="width:100%" onclick="editItem(null,'${day}')">+ Add item to ${DAYNAMES[day]}</button>
-     <button class="btn" style="width:100%;margin-top:8px" onclick="go('plan')">Edit full week →</button></div>`:''}
+   ${EDITMODE?`<div style="padding:10px 4px 6px"><button class="btn primary" style="width:100%" onclick="editItem(null,'${date}')">+ Add item to today</button>
+     <button class="btn" style="width:100%;margin-top:8px" onclick="PLANDATE='${date}';go('plan')">Edit full program →</button></div>`:''}
   </div>`;
 }
 function toggleDone(id){const d=todayKey();DB.done[d]=DB.done[d]||{};DB.done[d][id]=!DB.done[d][id];save();render()}
 function tapItem(id){
- const day=todayDay(),x=DB.schedule[day].find(i=>i.id===id);
- if(x&&x.tag==="wo"){woSheet(x);return}
+ const x=getScheduleForDate(new Date()).find(i=>i.id===id);
+ if(x&&x.tag==="wo"&&x.exercises&&x.exercises.length){startGym(todayKey(),id);return}
  toggleDone(id);
 }
 function addOz(n){const d=todayKey();DB.oz[d]=(DB.oz[d]||0)+n;save();render();toast("+"+n+" oz")}
@@ -494,49 +512,37 @@ function caffSheet(){
 }
 function delCaff(id){const d=todayKey();DB.caff[d]=(DB.caff[d]||[]).filter(x=>x.id!==id);save();closeSheet();render()}
 
-/* ---------- workout start sheet ---------- */
-function routinesForToday(){return DB.routines.filter(r=>r.days.includes(todayDay()))}
-function woSheet(item){
- const cands=routinesForToday();
- // best match: closest routine time to item time
- let best=null,bd=1e9;
- for(const r of cands){const d=Math.abs(toMin(r.time)-toMin(item.time));if(d<bd){bd=d;best=r}}
- openSheet(`
-  <h3>${esc(item.what)}</h3>
-  <div class="sub" style="margin-bottom:12px">${esc(item.time)}${item.note?" · "+esc(item.note):""}</div>
-  ${cands.length?cands.map(r=>`<button class="btn ${best&&r.id===best.id?'primary':''}" style="width:100%;margin-bottom:8px" onclick="startGym('${r.id}','${item.id}')">Start workout — ${esc(r.name)}</button>`).join("")
-   :`<div class="empty">No routine scheduled for ${DAYNAMES[todayDay()]} — add one in Train</div>`}
-  <button class="btn" style="width:100%" onclick="closeSheet();toggleDone('${item.id}')">Just mark ${(DB.done[todayKey()]||{})[item.id]?'undone':'done'}</button>`);
-}
-
 /* ---------- Gym mode ---------- */
-function lastLogFor(routineId){
- for(let i=DB.log.length-1;i>=0;i--)if(DB.log[i].routineId===routineId)return DB.log[i];
+function lastSetsForExercise(name){
+ for(let i=DB.log.length-1;i>=0;i--){
+  const e=DB.log[i].ex.find(x=>x.name===name);
+  if(e)return e.sets;
+ }
  return null;
 }
-function startGym(routineId,itemId){
+function startGym(dateKey,itemId){
  closeSheet();
- const r=DB.routines.find(x=>x.id===routineId);if(!r)return;
- const last=lastLogFor(routineId);
- GYM={routineId,itemId:itemId||null,name:r.name,data:r.exercises.map(e=>{
-   const lastEx=last?(last.ex.find(l=>l.name===e.name)||null):null;
+ const item=getScheduleForDate(parseDateKey(dateKey)).find(i=>i.id===itemId);
+ if(!item||!item.exercises||!item.exercises.length)return;
+ GYM={dateKey,itemId,name:item.what,note:item.note,data:item.exercises.map(e=>{
+   const last=lastSetsForExercise(e.name);
    return {name:e.name,sets:e.sets,reps:e.reps,
      rows:Array.from({length:e.sets},(_,i)=>({
-       w:lastEx&&lastEx.sets[i]?lastEx.sets[i].w:"",
+       w:last&&last[i]?last[i].w:"",
        r:"",
-       lastW:lastEx&&lastEx.sets[i]?lastEx.sets[i].w:"",
-       lastR:lastEx&&lastEx.sets[i]?lastEx.sets[i].r:""}))};
+       lastW:last&&last[i]?last[i].w:"",
+       lastR:last&&last[i]?last[i].r:""}))};
  })};
  go("gym");
 }
 function vGym(){
  if(!GYM){TAB="today";return vToday()}
- const r=DB.routines.find(x=>x.id===GYM.routineId);
  return `
   <div class="gym-head">
    <div class="row"><h1 class="grow">${esc(GYM.name)}</h1>
     <button class="btn small" onclick="if(confirm('Discard this workout?')){GYM=null;go('today')}">Cancel</button></div>
-   <div class="sub">${new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}${r&&r.cardio?" · "+esc(r.cardio):""}</div>
+   <div class="sub">${new Date().toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}</div>
+   ${GYM.note?`<div class="sub" style="white-space:pre-line">${esc(GYM.note)}</div>`:''}
   </div>
   ${GYM.data.map((e,ei)=>{
     const hint=e.rows.some(s=>s.lastW||s.lastR)?`Last: ${e.rows.map(s=>s.lastW?`${s.lastW}×${s.lastR||"?"}`:"—").join(" · ")}`:"First time — set your baseline";
@@ -556,12 +562,12 @@ function vGym(){
   <button class="btn green" style="width:100%;padding:16px;font-size:16px" onclick="finishGym()">Finish & log workout</button>`;
 }
 function finishGym(){
- const entry={id:uid(),date:todayKey(),routineId:GYM.routineId,name:GYM.name,
+ const entry={id:uid(),date:GYM.dateKey,name:GYM.name,
    ex:GYM.data.map(e=>({name:e.name,sets:e.rows.filter(s=>s.w!==""||s.r!=="").map(s=>({w:+s.w||0,r:+s.r||0}))}))
      .filter(e=>e.sets.length)};
  if(!entry.ex.length){toast("Enter at least one set",true);return}
  DB.log.push(entry);
- if(GYM.itemId){const d=todayKey();DB.done[d]=DB.done[d]||{};DB.done[d][GYM.itemId]=true}
+ if(GYM.itemId){DB.done[GYM.dateKey]=DB.done[GYM.dateKey]||{};DB.done[GYM.dateKey][GYM.itemId]=true}
  save();GYM=null;BOOKVIEW="history";go("book");toast("Workout logged");
 }
 
@@ -698,92 +704,72 @@ function addFood(){
 function pushFood(e){const d=todayKey();DB.food[d]=DB.food[d]||[];DB.food[d].push({id:uid(),...e});save();render()}
 function delFood(id){const d=todayKey();DB.food[d]=(DB.food[d]||[]).filter(x=>x.id!==id);save();render()}
 
-/* ---------- Train ---------- */
+/* ---------- Train (this week's sessions from the 8-week program) ---------- */
 function vTrain(){
- const today=todayDay();
+ const today=stripTime(new Date());
+ const{cyclePos,week}=programPosition(today);
+ const weekStart=new Date(today);weekStart.setDate(weekStart.getDate()-cyclePos);
+ const todayK=todayKey();
+ const days=[];for(let i=0;i<7;i++){const d=new Date(weekStart);d.setDate(d.getDate()+i);days.push(d)}
  return `
-  <div class="row"><h1 class="grow">Workout Routines</h1>
-   <button class="btn primary" onclick="editRoutine(null)">+ Add</button></div>
-  <div class="sub" style="margin-bottom:12px">Start a workout, or tap Edit to customize exercises</div>
-  ${DB.routines.map(r=>`
-   <div class="routine">
-     <div class="row"><h3 class="grow">${esc(r.name)}</h3>
-       ${r.days.includes(today)?'<span class="tag wo">today</span>':''}</div>
-     <div class="meta">${r.days.map(d=>DAYNAMES[d].slice(0,3)).join(" · ")||"No days"} · ${esc(r.time)}</div>
-     <div class="ex">${r.exercises.map(e=>`${esc(e.name)} — ${e.sets}×${esc(e.reps)}`).join("<br>")}${r.cardio?`<br><span style="color:var(--purple)">+ ${esc(r.cardio)}</span>`:""}</div>
-     <div class="row" style="margin-top:10px">
-       <button class="btn green grow" onclick="startGym('${r.id}',null)">Start workout</button>
-       <button class="btn" onclick="editRoutine('${r.id}')">Edit</button>
-     </div>
-   </div>`).join("")||`<div class="empty">No routines — add one</div>`}`;
+  <h1>This Week's Training</h1>
+  <div class="sub" style="margin-bottom:12px">Week ${week+1} of 8 — ${PHASE_LABEL[week]}. Start today's session, or edit any day's exercises.</div>
+  ${days.map(d=>{
+    const dk=dateKeyOf(d);
+    const items=getScheduleForDate(d).filter(x=>x.tag==="wo"||x.tag==="hard");
+    if(!items.length)return "";
+    const isToday=dk===todayK;
+    return `<div class="routine">
+      <div class="row"><h3 class="grow">${d.toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"})}</h3>${isToday?'<span class="tag wo">today</span>':''}</div>
+      ${items.map(x=>`
+        <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line)">
+          <div class="meta">${esc(x.time)} · ${esc(x.what)}</div>
+          ${x.exercises&&x.exercises.length?`<div class="ex">${x.exercises.map(e=>`${esc(e.name)} — ${e.sets}×${esc(e.reps)}`).join("<br>")}</div>`:""}
+          ${x.note?`<div class="note" style="margin-top:4px;white-space:pre-line">${esc(x.note)}</div>`:""}
+          <div class="row" style="margin-top:10px">
+            ${isToday&&x.exercises&&x.exercises.length?`<button class="btn green grow" onclick="startGym('${dk}','${x.id}')">Start workout</button>`:""}
+            <button class="btn ${isToday&&x.exercises&&x.exercises.length?"":"grow"}" onclick="editItem('${x.id}','${dk}')">Edit</button>
+          </div>
+        </div>`).join("")}
+    </div>`;
+  }).join("")||`<div class="empty">Nothing this week</div>`}`;
 }
-let EDIT_EX=[];
-function editRoutine(id){
- const r=id?DB.routines.find(x=>x.id===id):{name:"",days:[],time:"5:30pm",cardio:"",exercises:[ex("",3,"8-12")]};
- EDIT_EX=JSON.parse(JSON.stringify(r.exercises));
- openSheet(`
-  <h3>${id?"Edit":"New"} routine</h3>
-  <label>Name</label><input id="rname" value="${esc(r.name)}" placeholder="e.g. Push day">
-  <div class="mrow"><div><label>Time</label><input id="rtime" value="${esc(r.time)}" placeholder="6:45am"></div>
-   <div><label>Cardio / finisher</label><input id="rcardio" value="${esc(r.cardio||"")}" placeholder="20 min Stairmaster"></div></div>
-  <label>Days</label>
-  <div class="days" id="rdays">${DAYS.map(d=>`<button data-d="${d}" class="${r.days.includes(d)?'on':''}" onclick="this.classList.toggle('on')">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>
-  <label>Exercises</label>
-  <div id="exlist">${exRowsHTML()}</div>
-  <button class="btn small" style="margin-top:8px" onclick="EDIT_EX.push({name:'',sets:3,reps:'8-12'});syncExRows();$('exlist').innerHTML=exRowsHTML()">+ Add exercise</button>
-  <div class="row" style="margin-top:14px">
-    ${id?`<button class="btn danger" onclick="delRoutine('${id}')">Delete</button>`:""}
-    <div class="grow"></div>
-    <button class="btn" onclick="closeSheet()">Cancel</button>
-    <button class="btn primary" onclick="saveRoutine('${id||""}')">Save</button>
-  </div>`);
-}
-function exRowsHTML(){
- return EDIT_EX.map((e,i)=>`
-  <div class="mrow" style="margin-top:6px">
-    <div style="flex:3"><input data-exi="${i}" data-k="name" value="${esc(e.name)}" placeholder="Exercise" oninput="EDIT_EX[${i}].name=this.value"></div>
-    <div style="flex:1"><input data-exi="${i}" type="number" inputmode="numeric" value="${e.sets}" placeholder="Sets" oninput="EDIT_EX[${i}].sets=+this.value||1"></div>
-    <div style="flex:1.4"><input data-exi="${i}" value="${esc(e.reps)}" placeholder="Reps" oninput="EDIT_EX[${i}].reps=this.value"></div>
-    <button class="btn small danger" style="align-self:center" onclick="EDIT_EX.splice(${i},1);$('exlist').innerHTML=exRowsHTML()">✕</button>
-  </div>`).join("");
-}
-function syncExRows(){}
-function saveRoutine(id){
- const name=$("rname").value.trim();if(!name){toast("Name required",true);return}
- const days=[...document.querySelectorAll("#rdays button.on")].map(b=>b.dataset.d);
- const exercises=EDIT_EX.filter(e=>e.name.trim()).map(e=>({name:e.name.trim(),sets:Math.max(1,+e.sets||1),reps:String(e.reps||"").trim()||"8-12"}));
- if(!exercises.length){toast("Add at least one exercise",true);return}
- const data={name,time:$("rtime").value.trim()||"5:30pm",cardio:$("rcardio").value.trim(),days,exercises};
- if(id){Object.assign(DB.routines.find(x=>x.id===id),data)}else{DB.routines.push({id:uid(),...data})}
- save();closeSheet();render();toast("Saved");
-}
-function delRoutine(id){DB.routines=DB.routines.filter(x=>x.id!==id);save();closeSheet();render();toast("Deleted")}
 
 /* ---------- Plan ---------- */
 function vPlan(){
- const items=[...DB.schedule[PLANDAY]].sort((a,b)=>toMin(a.time)-toMin(b.time));
+ const dateObj=parseDateKey(PLANDATE);
+ const items=[...getScheduleForDate(dateObj)].sort((a,b)=>toMin(a.time)-toMin(b.time));
+ const{week}=programPosition(dateObj);
+ const label=dateObj.toLocaleDateString(undefined,{weekday:"long",month:"long",day:"numeric"});
  return `
-  <div class="row"><h1 class="grow">Weekly Plan</h1>
-   <button class="btn" onclick="go('more')">Done</button>
-   <button class="btn primary" onclick="editItem(null,PLANDAY)">+ Add</button></div>
-  <div class="sub" style="margin-bottom:10px">Tap an item to edit · ${BELL} = included in reminders export</div>
-  <div class="days">${DAYS.map(d=>`<button class="${PLANDAY===d?'on':''}" onclick="PLANDAY='${d}';render()">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>
+  <div class="row"><h1 class="grow">Training Plan</h1>
+   <button class="btn" onclick="go('more')">Done</button></div>
+  <div class="mnav">
+   <button onclick="shiftPlanDay(-1)">‹</button>
+   <div class="mtitle">${label}</div>
+   <button onclick="shiftPlanDay(1)">›</button>
+  </div>
+  <div class="sub" style="margin-bottom:10px">Week ${week+1} of 8 · Tap an item to edit · ${BELL} = included in reminders export</div>
   <div class="card" style="padding:6px 10px">
    ${items.map(x=>`
-    <div class="tl-item editing" onclick="editItem('${x.id}','${PLANDAY}')">
+    <div class="tl-item editing" onclick="editItem('${x.id}','${PLANDATE}')">
       <div class="time">${esc(x.time)}</div>
       <div class="what">${esc(x.what)} ${x.remind?BELL:""}${x.note?`<div class="note">${esc(x.note)}</div>`:''}</div>
       <div class="chk edit">${PENCIL}</div>
     </div>`).join("")||`<div class="empty">No items</div>`}
+   <div style="padding:10px 4px 6px"><button class="btn primary" style="width:100%" onclick="editItem(null,PLANDATE)">+ Add item</button></div>
   </div>
-  <button class="btn" style="width:100%" onclick="copyDaySheet()">Copy ${DAYNAMES[PLANDAY]}'s schedule to other days…</button>`;
+  <button class="btn" style="width:100%" onclick="copyDaySheet()">Copy this day's schedule to another date…</button>`;
 }
-function dayPills(sel){return `<div class="days" id="idays">${DAYS.map(d=>`<button type="button" data-d="${d}" class="${sel.includes(d)?'on':''}" onclick="this.classList.toggle('on')">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>`}
-function editItem(id,srcDay){
- srcDay=srcDay||PLANDAY;
- const x=id?DB.schedule[srcDay].find(i=>i.id===id):{time:"7:00am",what:"",note:"",tag:"",remind:false};
+function shiftPlanDay(n){const d=parseDateKey(PLANDATE);d.setDate(d.getDate()+n);PLANDATE=dateKeyOf(d);render()}
+let EDIT_EX=[];
+function editItem(id,dateKey){
+ const items=getScheduleForDate(parseDateKey(dateKey));
+ const x=id?items.find(i=>i.id===id):{time:"7:00am",what:"",note:"",tag:"",remind:false,exercises:[]};
+ EDIT_EX=JSON.parse(JSON.stringify(x.exercises||[]));
  openSheet(`
   <h3>${id?"Edit item":"New item"}</h3>
+  <div class="sub" style="margin-bottom:4px">${esc(parseDateKey(dateKey).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"}))}</div>
   <div class="mrow" style="margin-top:6px">
     <div style="flex:1.1"><label>Time</label><input type="time" id="itime" value="${to24(x.time)}"></div>
     <div style="flex:1.5"><label>Type</label>
@@ -791,54 +777,62 @@ function editItem(id,srcDay){
       <option value="" ${!x.tag?"selected":""}>General</option>
       <option value="wo" ${x.tag==="wo"?"selected":""}>Workout</option>
       <option value="food" ${x.tag==="food"?"selected":""}>Food</option>
-      <option value="hard" ${x.tag==="hard"?"selected":""}>75 Hard</option>
+      <option value="hard" ${x.tag==="hard"?"selected":""}>75 Hard / Test</option>
      </select></div>
   </div>
-  <label>Activity</label><input id="iwhat" value="${esc(x.what)}" placeholder="e.g. AM Strength — Push">
+  <label>Activity</label><input id="iwhat" value="${esc(x.what)}" placeholder="e.g. PM Gym — Clean Day">
   <label>Notes</label><input id="inote" value="${esc(x.note)}" placeholder="optional">
-  <label>${id?"Also copy to days":"Add to days"}</label>
-  ${dayPills([srcDay])}
-  <div class="sub" style="margin-top:4px">${id?`Editing ${DAYNAMES[srcDay]}. Tap other days to copy this item onto them too.`:`Pick every day this should appear on.`}</div>
   <label class="row" style="margin-top:12px;align-items:center;font-size:14px;color:var(--text)">
     <input type="checkbox" id="iremind" style="width:22px;height:22px" ${x.remind?"checked":""}> Include in iPhone reminders
   </label>
+  <label style="margin-top:14px">Loggable exercises (used by Gym Mode)</label>
+  <div id="exlist">${exRowsHTML()}</div>
+  <button class="btn small" style="margin-top:8px" onclick="EDIT_EX.push({name:'',sets:3,reps:'8-12'});$('exlist').innerHTML=exRowsHTML()">+ Add exercise</button>
   <div class="row" style="margin-top:14px">
-    ${id?`<button class="btn danger" onclick="delItem('${id}','${srcDay}')">Delete</button>`:""}
+    ${id?`<button class="btn danger" onclick="delItem('${id}','${dateKey}')">Delete</button>`:""}
     <div class="grow"></div>
     <button class="btn" onclick="closeSheet()">Cancel</button>
-    <button class="btn primary" onclick="saveItem('${id||""}','${srcDay}')">Save</button>
+    <button class="btn primary" onclick="saveItem('${id||""}','${dateKey}')">Save</button>
   </div>`);
 }
-function saveItem(id,srcDay){
- const what=$("iwhat").value.trim();if(!what){toast("Activity required",true);return}
- const data={time:from24($("itime").value)||"7:00am",what,note:$("inote").value.trim(),tag:$("itag").value,remind:$("iremind").checked};
- const days=[...document.querySelectorAll("#idays button.on")].map(b=>b.dataset.d);
- if(id){
-  Object.assign(DB.schedule[srcDay].find(i=>i.id===id),data);
-  const copies=days.filter(d=>d!==srcDay);
-  copies.forEach(d=>DB.schedule[d].push({id:uid(),...data}));
-  save();closeSheet();render();toast(copies.length?`Saved · copied to ${copies.length} day${copies.length>1?"s":""}`:"Saved");
- }else{
-  const targets=days.length?days:[srcDay];
-  targets.forEach(d=>DB.schedule[d].push({id:uid(),...data}));
-  save();closeSheet();render();toast(`Added to ${targets.length} day${targets.length>1?"s":""}`);
- }
+function exRowsHTML(){
+ return EDIT_EX.map((e,i)=>`
+  <div class="mrow" style="margin-top:6px">
+    <div style="flex:3"><input value="${esc(e.name)}" placeholder="Exercise" oninput="EDIT_EX[${i}].name=this.value"></div>
+    <div style="flex:1"><input type="number" inputmode="numeric" value="${e.sets}" placeholder="Sets" oninput="EDIT_EX[${i}].sets=+this.value||1"></div>
+    <div style="flex:1.4"><input value="${esc(e.reps)}" placeholder="Reps" oninput="EDIT_EX[${i}].reps=this.value"></div>
+    <button class="btn small danger" style="align-self:center" onclick="EDIT_EX.splice(${i},1);$('exlist').innerHTML=exRowsHTML()">✕</button>
+  </div>`).join("");
 }
-function delItem(id,srcDay){DB.schedule[srcDay]=DB.schedule[srcDay].filter(i=>i.id!==id);save();closeSheet();render();toast("Deleted")}
+function saveItem(id,dateKey){
+ const what=$("iwhat").value.trim();if(!what){toast("Activity required",true);return}
+ const exercises=EDIT_EX.filter(e=>e.name.trim()).map(e=>({name:e.name.trim(),sets:Math.max(1,+e.sets||1),reps:String(e.reps||"").trim()||"8-12"}));
+ const data={time:from24($("itime").value)||"7:00am",what,note:$("inote").value.trim(),tag:$("itag").value,remind:$("iremind").checked,exercises};
+ const items=getScheduleForDate(parseDateKey(dateKey));
+ if(id){Object.assign(items.find(i=>i.id===id),data)}
+ else{items.push({id:uid(),...data})}
+ save();closeSheet();render();toast("Saved");
+}
+function delItem(id,dateKey){
+ const items=getScheduleForDate(parseDateKey(dateKey));
+ const idx=items.findIndex(i=>i.id===id);if(idx>=0)items.splice(idx,1);
+ save();closeSheet();render();toast("Deleted");
+}
 function copyDaySheet(){
+ const label=parseDateKey(PLANDATE).toLocaleDateString(undefined,{weekday:"long",month:"short",day:"numeric"});
  openSheet(`
-  <h3>Copy ${DAYNAMES[PLANDAY]}'s schedule</h3>
-  <div class="sub" style="margin-bottom:6px">Replaces the selected days with a full copy of ${DAYNAMES[PLANDAY]}.</div>
-  <div class="days" id="copydays">${DAYS.filter(d=>d!==PLANDAY).map(d=>`<button type="button" data-d="${d}" onclick="this.classList.toggle('on')">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>
+  <h3>Copy this day's schedule</h3>
+  <div class="sub" style="margin-bottom:8px">Replaces the target date with a full copy of ${esc(label)}.</div>
+  <label>Target date</label><input type="date" id="copytarget" min="2026-07-14" max="2026-09-07">
   <div class="row" style="margin-top:16px"><div class="grow"></div>
    <button class="btn" onclick="closeSheet()">Cancel</button>
    <button class="btn primary" onclick="doCopyDay()">Copy</button></div>`);
 }
 function doCopyDay(){
- const days=[...document.querySelectorAll("#copydays button.on")].map(b=>b.dataset.d);
- if(!days.length){toast("Pick at least one day",true);return}
- days.forEach(d=>{DB.schedule[d]=DB.schedule[PLANDAY].map(x=>({...x,id:uid()}))});
- save();closeSheet();render();toast(`Copied to ${days.length} day${days.length>1?"s":""}`);
+ const val=$("copytarget").value; if(!val){toast("Pick a date",true);return}
+ const src=getScheduleForDate(parseDateKey(PLANDATE));
+ DB.schedule[val]=src.map(x=>({...x,id:uid(),exercises:(x.exercises||[]).map(e=>({...e}))}));
+ save();closeSheet();render();toast("Copied to "+val);
 }
 
 /* ---------- More ---------- */
@@ -847,15 +841,15 @@ function vMore(){
  const notifState=("Notification" in window)?Notification.permission:"unsupported";
  return `
   <h1>Settings & Reminders</h1>
-  <h2>Weekly plan</h2>
+  <h2>Training plan</h2>
   <div class="card">
-    <div style="font-size:13px;color:var(--dim);line-height:1.5">Edit your recurring daily schedule — times, activities, and which items send reminders.</div>
-    <button class="btn" style="width:100%;margin-top:10px" onclick="go('plan')">Edit weekly plan</button>
+    <div style="font-size:13px;color:var(--dim);line-height:1.5">Edit the 8-week program day by day — times, exercises, notes, and which items send reminders.</div>
+    <button class="btn" style="width:100%;margin-top:10px" onclick="PLANDATE=todayKey();go('plan')">Edit training plan</button>
   </div>
   <h2>iPhone reminders</h2>
   <div class="card">
     <div style="font-size:13px;line-height:1.55;color:var(--dim)">
-      <b style="color:var(--text)">Best method:</b> export your schedule to the iPhone Calendar. Every item marked ${BELL} becomes a repeating weekly event with an alert — real native notifications, works even when this app is closed, no server needed.
+      <b style="color:var(--text)">Best method:</b> export the full 8-week schedule to the iPhone Calendar. Every item marked ${BELL} becomes a dated event with an alert — real native notifications, works even when this app is closed, no server needed.
     </div>
     <button class="btn primary" style="width:100%;margin-top:12px" onclick="downloadICS()">Export reminders to Calendar (.ics)</button>
     <div style="font-size:12px;color:var(--dim);margin-top:8px">After downloading, tap the file → "Add All" to Calendar. To change which items alert you, toggle ${BELL} in the Plan tab and re-export.</div>
@@ -902,32 +896,24 @@ function dl(blob,name){
  document.body.appendChild(a);a.click();a.remove();
 }
 
-/* ---------- ICS export ---------- */
-const BYDAY={sun:"SU",mon:"MO",tue:"TU",wed:"WE",thu:"TH",fri:"FR",sat:"SA"};
+/* ---------- ICS export (dated events across the 8-week program) ---------- */
 function downloadICS(){
  const lines=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Protocol//EN","CALSCALE:GREGORIAN","X-WR-CALNAME:Protocol"];
- const now=new Date();
- for(const day of DAYS){
-  for(const x of DB.schedule[day]){
+ const escI=s=>(s||"").replace(/\\/g,"\\\\").replace(/,/g,"\\,").replace(/;/g,"\\;");
+ for(let d=new Date(PROGRAM_START);d<=PROGRAM_END;d.setDate(d.getDate()+1)){
+  const items=getScheduleForDate(new Date(d));
+  for(const x of items){
    if(!x.remind)continue;
-   const m=toMin(x.time);
-   const d=new Date(now);
-   const target=DAYS.indexOf(day);
-   let diff=(target-d.getDay()+7)%7;
-   const hh=Math.floor(m/60),mm=m%60;
-   if(diff===0&&(hh*60+mm)<=(d.getHours()*60+d.getMinutes()))diff=7;
-   d.setDate(d.getDate()+diff);
+   const m=toMin(x.time),hh=Math.floor(m/60),mm=m%60;
    const ds=d.getFullYear()+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
    const ts="T"+String(hh).padStart(2,"0")+String(mm).padStart(2,"0")+"00";
    const de=new Date(d);de.setHours(hh,mm+15);
    const dse=de.getFullYear()+String(de.getMonth()+1).padStart(2,"0")+String(de.getDate()).padStart(2,"0");
    const tse="T"+String(de.getHours()).padStart(2,"0")+String(de.getMinutes()).padStart(2,"0")+"00";
-   const escI=s=>(s||"").replace(/\\/g,"\\\\").replace(/,/g,"\\,").replace(/;/g,"\\;");
    lines.push("BEGIN:VEVENT",
-    "UID:"+x.id+"-"+day+"@protocol.local",
+    "UID:"+x.id+"@protocol.local",
     "DTSTART:"+ds+ts,
     "DTEND:"+dse+tse,
-    "RRULE:FREQ=WEEKLY;BYDAY="+BYDAY[day],
     "SUMMARY:"+escI(x.what),
     x.note?"DESCRIPTION:"+escI(x.note):"",
     "BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+escI(x.what),"TRIGGER:-PT0M","END:VALARM",
@@ -937,7 +923,7 @@ function downloadICS(){
  lines.push("END:VCALENDAR");
  const blob=new Blob([lines.filter(Boolean).join("\r\n")],{type:"text/calendar"});
  dl(blob,"protocol-reminders.ics");
- toast("Calendar file downloaded");
+ toast("Calendar file downloaded — 8 weeks of reminders");
 }
 
 /* ---------- in-app notifications ---------- */
@@ -948,8 +934,8 @@ function enableNotifs(){
 let lastFired={};
 setInterval(()=>{
  if(!DB||!DB.remindersOn||!("Notification"in window)||Notification.permission!=="granted")return;
- const day=todayDay(),nM=nowMin();
- for(const x of DB.schedule[day]){
+ const items=getScheduleForDate(new Date()), nM=nowMin();
+ for(const x of items){
   if(!x.remind)continue;
   if(toMin(x.time)===nM&&lastFired[x.id]!==todayKey()+nM){
    lastFired[x.id]=todayKey()+nM;
@@ -966,9 +952,7 @@ $("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeSheet()});
 /* ---------- History (calendar + analytics) ---------- */
 let HISTM=(()=>{const d=new Date();return{y:d.getFullYear(),m:d.getMonth()}})();
 function dayStats(key){
- const dt=new Date(key+"T12:00:00");
- const wd=DAYS[dt.getDay()];
- const items=DB.schedule[wd]||[];
+ const items=getScheduleForDate(parseDateKey(key));
  const done=DB.done[key]||{};
  const checked=items.filter(x=>done[x.id]).length;
  const t=foodTotals(key), oz=DB.oz[key]||0, caff=caffTotal(key);
