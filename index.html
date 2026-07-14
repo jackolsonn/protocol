@@ -950,7 +950,7 @@ function closeSheet(){$("modal").classList.remove("open")}
 $("modal").addEventListener("click",e=>{if(e.target.id==="modal")closeSheet()});
 
 /* ---------- History (calendar + analytics) ---------- */
-let HISTM=(()=>{const d=new Date();return{y:d.getFullYear(),m:d.getMonth()}})();
+let HISTM={y:2026,m:6}; // July 2026 — program start month
 function dayStats(key){
  const items=getScheduleForDate(parseDateKey(key));
  const done=DB.done[key]||{};
@@ -965,7 +965,7 @@ function dayStats(key){
   {ok:oz>=T.oz,label:"Water — 4 Owalas",detail:oz+" / "+T.oz+" oz"},
   {ok:hasData&&caff<=T.caffeine,label:"Caffeine under limit",detail:caff+" / "+T.caffeine+" mg"},
  ];
- return {key,wd,items,done,checked,t,oz,caff,wos,hasData,obj,hit:obj.filter(o=>o.ok).length};
+ return {key,items,done,checked,t,oz,caff,wos,hasData,obj,hit:obj.filter(o=>o.ok).length};
 }
 function keyOffset(off){const d=new Date();d.setDate(d.getDate()-off);
  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
