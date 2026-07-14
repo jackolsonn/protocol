@@ -56,6 +56,8 @@ nav .ico{font-size:19px;line-height:1}
 .tl-item.now .time{color:var(--accent)}
 .chk{width:24px;height:24px;border-radius:8px;border:2px solid var(--line);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:transparent;font-size:14px;background:var(--card2)}
 .tl-item.done .chk{background:var(--green);border-color:var(--green);color:#052e1b}
+.tl-item.editing{background:rgba(56,189,248,.06);border-radius:10px}
+.chk.edit{background:var(--card2);border-color:var(--accent);color:var(--accent)}
 .tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--card2);color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
 .tag.wo{background:rgba(167,139,250,.15);color:var(--purple)}
 .tag.food{background:rgba(52,211,153,.15);color:var(--green)}
@@ -361,9 +363,12 @@ function toMin(t){
 }
 function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function fmtDate(k){const[y,m,d]=k.split("-");return new Date(+y,+m-1,+d).toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})}
+/* time format: app stores "6:45am"; native <input type=time> uses 24h "06:45" */
+function to24(t){const m=toMin(t);return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
+function from24(s){if(!s||!/^\d{1,2}:\d{2}$/.test(s))return "";let[h,m]=s.split(":").map(Number);const ap=h<12?"am":"pm";const h12=h%12||12;return h12+":"+String(m).padStart(2,"0")+ap}
 
 /* ================= UI ================= */
-let TAB="today", PLANDAY=todayDay(), GYM=null, BOOKVIEW="history", BOOKEX=null;
+let TAB="today", PLANDAY=todayDay(), GYM=null, BOOKVIEW="history", BOOKEX=null, EDITMODE=false;
 const $=id=>document.getElementById(id);
 function toast(msg,warn){const t=$("toast");t.textContent=msg;t.className="toast"+(warn?" warn":"");t.style.display="block";clearTimeout(t._h);t._h=setTimeout(()=>t.style.display="none",1800)}
 
@@ -378,6 +383,7 @@ const ICONS={
  hist:'<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M6 21v-7M11 21V8M16 21v-4M21 21V4"/></svg>',
 };
 const BELL='<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.3 5.5 2 6.5H4c.7-1 2-2.5 2-6.5Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>';
+const PENCIL='<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 const TABS=[["today","Today"],["food","Food"],["train","Train"],["book","Notebook"],["hist","History"],["motiv","Motivation"],["more","More"]];
 function renderNav(){
  $("nav").innerHTML=TABS.map(([k,l])=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')"><span class="ico">${ICONS[k]}</span>${l}</button>`).join("");
@@ -416,7 +422,9 @@ function vToday(){
  const doneCount=items.filter(x=>done[x.id]).length;
  const owalasDone=(oz/OWALA), pastCut=nMin>=CAFF_CUTOFF;
  return `
-  <h1>${DAYNAMES[day]}</h1><div class="sub">${dn} · ${doneCount}/${items.length} complete</div>
+  <div class="row"><h1 class="grow">${DAYNAMES[day]}</h1>
+   <button class="btn small ${EDITMODE?'primary':''}" onclick="EDITMODE=!EDITMODE;render()">${EDITMODE?'Done':'Edit'}</button></div>
+  <div class="sub">${dn} · ${doneCount}/${items.length} complete</div>
   <div class="row" style="margin:12px 0 8px">
     <div class="stat"><div class="lbl">Calories</div><b>${t.cal}</b> <span class="sub">/ ${T.cal}</span>${bar(t.cal,T.cal,"var(--accent)")}</div>
     <div class="stat"><div class="lbl">Protein</div><b>${t.p}g</b> <span class="sub">/ ${T.protein}</span>${bar(t.p,T.protein,"var(--green)")}</div>
@@ -443,15 +451,17 @@ function vToday(){
     </div>
     <div class="caff-cut" style="color:${pastCut?'var(--red)':'var(--dim)'}">${pastCut?"Past 2:00pm cutoff — no more caffeine today":"Cutoff 2:00pm"}</div>
   </div>
-  <h2>Schedule</h2>
+  <div class="row"><h2 class="grow">Schedule</h2>${EDITMODE?`<span class="sub" style="margin:14px 0 8px">Tap a row to edit</span>`:''}</div>
   <div class="card" style="padding:6px 10px">
    ${items.map(x=>`
-    <div class="tl-item ${done[x.id]?'done':''} ${x.id===nextId?'now':''}" onclick="tapItem('${x.id}')">
+    <div class="tl-item ${done[x.id]?'done':''} ${!EDITMODE&&x.id===nextId?'now':''} ${EDITMODE?'editing':''}" onclick="${EDITMODE?`editItem('${x.id}','${day}')`:`tapItem('${x.id}')`}">
       <div class="time">${esc(x.time)}</div>
       <div class="what">${esc(x.what)}${x.tag?` <span class="tag ${x.tag}">${x.tag==='wo'?'workout':x.tag==='hard'?'75 hard':'food'}</span>`:''}
         ${x.note?`<div class="note">${esc(x.note)}</div>`:''}</div>
-      <div class="chk" onclick="event.stopPropagation();toggleDone('${x.id}')">✓</div>
+      ${EDITMODE?`<div class="chk edit">${PENCIL}</div>`:`<div class="chk" onclick="event.stopPropagation();toggleDone('${x.id}')">✓</div>`}
     </div>`).join("")}
+   ${EDITMODE?`<div style="padding:10px 4px 6px"><button class="btn primary" style="width:100%" onclick="editItem(null,'${day}')">+ Add item to ${DAYNAMES[day]}</button>
+     <button class="btn" style="width:100%;margin-top:8px" onclick="go('plan')">Edit full week →</button></div>`:''}
   </div>`;
 }
 function toggleDone(id){const d=todayKey();DB.done[d]=DB.done[d]||{};DB.done[d][id]=!DB.done[d][id];save();render()}
@@ -755,49 +765,81 @@ function vPlan(){
  return `
   <div class="row"><h1 class="grow">Weekly Plan</h1>
    <button class="btn" onclick="go('more')">Done</button>
-   <button class="btn primary" onclick="editItem(null)">+ Add</button></div>
+   <button class="btn primary" onclick="editItem(null,PLANDAY)">+ Add</button></div>
   <div class="sub" style="margin-bottom:10px">Tap an item to edit · ${BELL} = included in reminders export</div>
   <div class="days">${DAYS.map(d=>`<button class="${PLANDAY===d?'on':''}" onclick="PLANDAY='${d}';render()">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>
   <div class="card" style="padding:6px 10px">
    ${items.map(x=>`
-    <div class="tl-item" onclick="editItem('${x.id}')">
+    <div class="tl-item editing" onclick="editItem('${x.id}','${PLANDAY}')">
       <div class="time">${esc(x.time)}</div>
       <div class="what">${esc(x.what)} ${x.remind?BELL:""}${x.note?`<div class="note">${esc(x.note)}</div>`:''}</div>
+      <div class="chk edit">${PENCIL}</div>
     </div>`).join("")||`<div class="empty">No items</div>`}
-  </div>`;
+  </div>
+  <button class="btn" style="width:100%" onclick="copyDaySheet()">Copy ${DAYNAMES[PLANDAY]}'s schedule to other days…</button>`;
 }
-function editItem(id){
- const x=id?DB.schedule[PLANDAY].find(i=>i.id===id):{time:"7:00am",what:"",note:"",tag:"",remind:false};
+function dayPills(sel){return `<div class="days" id="idays">${DAYS.map(d=>`<button type="button" data-d="${d}" class="${sel.includes(d)?'on':''}" onclick="this.classList.toggle('on')">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>`}
+function editItem(id,srcDay){
+ srcDay=srcDay||PLANDAY;
+ const x=id?DB.schedule[srcDay].find(i=>i.id===id):{time:"7:00am",what:"",note:"",tag:"",remind:false};
  openSheet(`
-  <h3>${id?"Edit":"New"} — ${DAYNAMES[PLANDAY]}</h3>
-  <label>Time (e.g. 6:45am)</label><input id="itime" value="${esc(x.time)}">
-  <label>Activity</label><input id="iwhat" value="${esc(x.what)}">
-  <label>Notes</label><input id="inote" value="${esc(x.note)}">
-  <label>Type</label>
-  <select id="itag">
-    <option value="" ${!x.tag?"selected":""}>General</option>
-    <option value="wo" ${x.tag==="wo"?"selected":""}>Workout</option>
-    <option value="food" ${x.tag==="food"?"selected":""}>Food</option>
-    <option value="hard" ${x.tag==="hard"?"selected":""}>75 Hard</option>
-  </select>
+  <h3>${id?"Edit item":"New item"}</h3>
+  <div class="mrow" style="margin-top:6px">
+    <div style="flex:1.1"><label>Time</label><input type="time" id="itime" value="${to24(x.time)}"></div>
+    <div style="flex:1.5"><label>Type</label>
+     <select id="itag">
+      <option value="" ${!x.tag?"selected":""}>General</option>
+      <option value="wo" ${x.tag==="wo"?"selected":""}>Workout</option>
+      <option value="food" ${x.tag==="food"?"selected":""}>Food</option>
+      <option value="hard" ${x.tag==="hard"?"selected":""}>75 Hard</option>
+     </select></div>
+  </div>
+  <label>Activity</label><input id="iwhat" value="${esc(x.what)}" placeholder="e.g. AM Strength — Push">
+  <label>Notes</label><input id="inote" value="${esc(x.note)}" placeholder="optional">
+  <label>${id?"Also copy to days":"Add to days"}</label>
+  ${dayPills([srcDay])}
+  <div class="sub" style="margin-top:4px">${id?`Editing ${DAYNAMES[srcDay]}. Tap other days to copy this item onto them too.`:`Pick every day this should appear on.`}</div>
   <label class="row" style="margin-top:12px;align-items:center;font-size:14px;color:var(--text)">
     <input type="checkbox" id="iremind" style="width:22px;height:22px" ${x.remind?"checked":""}> Include in iPhone reminders
   </label>
   <div class="row" style="margin-top:14px">
-    ${id?`<button class="btn danger" onclick="delItem('${id}')">Delete</button>`:""}
+    ${id?`<button class="btn danger" onclick="delItem('${id}','${srcDay}')">Delete</button>`:""}
     <div class="grow"></div>
     <button class="btn" onclick="closeSheet()">Cancel</button>
-    <button class="btn primary" onclick="saveItem('${id||""}')">Save</button>
+    <button class="btn primary" onclick="saveItem('${id||""}','${srcDay}')">Save</button>
   </div>`);
 }
-function saveItem(id){
+function saveItem(id,srcDay){
  const what=$("iwhat").value.trim();if(!what){toast("Activity required",true);return}
- const data={time:$("itime").value.trim()||"7:00am",what,note:$("inote").value.trim(),tag:$("itag").value,remind:$("iremind").checked};
- if(id){Object.assign(DB.schedule[PLANDAY].find(i=>i.id===id),data)}
- else{DB.schedule[PLANDAY].push({id:uid(),...data})}
- save();closeSheet();render();toast("Saved");
+ const data={time:from24($("itime").value)||"7:00am",what,note:$("inote").value.trim(),tag:$("itag").value,remind:$("iremind").checked};
+ const days=[...document.querySelectorAll("#idays button.on")].map(b=>b.dataset.d);
+ if(id){
+  Object.assign(DB.schedule[srcDay].find(i=>i.id===id),data);
+  const copies=days.filter(d=>d!==srcDay);
+  copies.forEach(d=>DB.schedule[d].push({id:uid(),...data}));
+  save();closeSheet();render();toast(copies.length?`Saved · copied to ${copies.length} day${copies.length>1?"s":""}`:"Saved");
+ }else{
+  const targets=days.length?days:[srcDay];
+  targets.forEach(d=>DB.schedule[d].push({id:uid(),...data}));
+  save();closeSheet();render();toast(`Added to ${targets.length} day${targets.length>1?"s":""}`);
+ }
 }
-function delItem(id){DB.schedule[PLANDAY]=DB.schedule[PLANDAY].filter(i=>i.id!==id);save();closeSheet();render();toast("Deleted")}
+function delItem(id,srcDay){DB.schedule[srcDay]=DB.schedule[srcDay].filter(i=>i.id!==id);save();closeSheet();render();toast("Deleted")}
+function copyDaySheet(){
+ openSheet(`
+  <h3>Copy ${DAYNAMES[PLANDAY]}'s schedule</h3>
+  <div class="sub" style="margin-bottom:6px">Replaces the selected days with a full copy of ${DAYNAMES[PLANDAY]}.</div>
+  <div class="days" id="copydays">${DAYS.filter(d=>d!==PLANDAY).map(d=>`<button type="button" data-d="${d}" onclick="this.classList.toggle('on')">${DAYNAMES[d].slice(0,3)}</button>`).join("")}</div>
+  <div class="row" style="margin-top:16px"><div class="grow"></div>
+   <button class="btn" onclick="closeSheet()">Cancel</button>
+   <button class="btn primary" onclick="doCopyDay()">Copy</button></div>`);
+}
+function doCopyDay(){
+ const days=[...document.querySelectorAll("#copydays button.on")].map(b=>b.dataset.d);
+ if(!days.length){toast("Pick at least one day",true);return}
+ days.forEach(d=>{DB.schedule[d]=DB.schedule[PLANDAY].map(x=>({...x,id:uid()}))});
+ save();closeSheet();render();toast(`Copied to ${days.length} day${days.length>1?"s":""}`);
+}
 
 /* ---------- More ---------- */
 function vMore(){
